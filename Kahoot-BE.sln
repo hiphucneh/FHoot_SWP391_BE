@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kahoot.API", "Kahoot.API\Kahoot.API.csproj", "{2DDD7FC5-FB6A-443D-A718-D8F3EA173C74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kahoot.Repository", "Kahoot.Repository\Kahoot.Repository.csproj", "{DCF0153B-77D1-4B89-8714-9609CD967071}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kahoot.Service", "Kahoot.Service\Kahoot.Service.csproj", "{5F96C662-93CD-448E-9462-CAC24EE8331C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kahoot.Common", "Kahoot.Common\Kahoot.Common.csproj", "{117A4CAA-5658-420D-B523-EBCEA5BFFB4B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2DDD7FC5-FB6A-443D-A718-D8F3EA173C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DDD7FC5-FB6A-443D-A718-D8F3EA173C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DDD7FC5-FB6A-443D-A718-D8F3EA173C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DDD7FC5-FB6A-443D-A718-D8F3EA173C74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCF0153B-77D1-4B89-8714-9609CD967071}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCF0153B-77D1-4B89-8714-9609CD967071}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCF0153B-77D1-4B89-8714-9609CD967071}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCF0153B-77D1-4B89-8714-9609CD967071}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F96C662-93CD-448E-9462-CAC24EE8331C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F96C662-93CD-448E-9462-CAC24EE8331C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F96C662-93CD-448E-9462-CAC24EE8331C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F96C662-93CD-448E-9462-CAC24EE8331C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{117A4CAA-5658-420D-B523-EBCEA5BFFB4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{117A4CAA-5658-420D-B523-EBCEA5BFFB4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{117A4CAA-5658-420D-B523-EBCEA5BFFB4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{117A4CAA-5658-420D-B523-EBCEA5BFFB4B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {05EC730F-B562-4C48-BA39-70FC7512C301}
+	EndGlobalSection
+EndGlobal
