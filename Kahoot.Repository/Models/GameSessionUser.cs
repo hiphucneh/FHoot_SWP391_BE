@@ -9,7 +9,11 @@ public partial class GameSessionUser
 
     public int SessionId { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
+
+    public string DisplayName { get; set; } = null!;
+
+    public string? Icon { get; set; }
 
     public DateTime? JoinedAt { get; set; }
 
@@ -19,5 +23,5 @@ public partial class GameSessionUser
 
     public virtual GameSession Session { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

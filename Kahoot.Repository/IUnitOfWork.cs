@@ -10,7 +10,13 @@ namespace Kahoot.Repository.Interface
         Task SaveChangesAsync();
 
         IUserRepository UserRepository { get; }
-        IPackageRepository PackageRepository { get; }
-        IUserPackageRepository UserPackageRepository { get; }
+        IUserAnswerRepository UserAnswerRepository { get; }
+        ITeamRepository TeamRepository { get; }
+        ISessionUserRepository SessionUserRepository { get; }
+        ISessionRepository SessionRepository { get; }
+        IQuizRepository QuizRepository { get; }
+        IQuestionRepository QuestionRepository { get; }
+        IPlayerResponseRepository PlayerResponseRepository { get; }
+        IAnswerRepository AnswerRepository { get; }
     }
 }

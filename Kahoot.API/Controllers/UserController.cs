@@ -95,18 +95,8 @@ namespace Kahoot.API.Controllers
                     Email = user.Email ?? "noemail@example.com",
                     Role = user.Role?.RoleName,
                     name = user.FullName ?? "Anonymous",
-                    gender = user.Gender ?? "not specified",
                     age = user.Age.ToString(),
-                    phoneNumber = user.Phone ?? "0123456789",
-                    address = user.Location ?? "Vietnam",
-                    avatar = user.Avatar ?? "",
-                    package = user.UserPackages?
-                            .Where(x =>
-                                x.Status.Equals("active", StringComparison.OrdinalIgnoreCase) &&
-                                x.ExpiryDate.Date >= DateTime.Now.Date)
-                            .OrderByDescending(x => x.ExpiryDate)
-                            .FirstOrDefault()
-                            ?.Package?.PackageName ?? null,
+                    avatar = user.Avatar ?? ""
                 });
             }
             return Unauthorized(new { message = "Unauthorize" });
@@ -146,22 +136,6 @@ namespace Kahoot.API.Controllers
         public async Task<IActionResult> UpdateStatusUser(int userId, UserStatus status)
         {
             var result = await _userService.UpdateStatusUser(userId, status);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpGet("is-premium")]
-        [Authorize]
-        public async Task<IActionResult> IsPremium()
-        {
-            var result = await _userService.IsPremium();
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpPost("upgrade-package/{packageId}")]
-        [Authorize]
-        public async Task<IActionResult> UpgradePackage(int packageId)
-        {
-            var result = await _userService.UpgradePackage(packageId);
             return StatusCode(result.StatusCode, result);
         }
     }

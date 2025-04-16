@@ -10,8 +10,14 @@ namespace Kahoot.Repository
     {
         protected readonly KahootContext _context;
         private IUserRepository _userRepository;
-        private IPackageRepository _packageRepository;
-        private IUserPackageRepository _userPackageRepository;
+        private IUserAnswerRepository _userAnswerRepository;
+        private ITeamRepository _teamRepository;
+        private ISessionUserRepository _sessionUserRepository;
+        private ISessionRepository _sessionRepository;
+        private IQuizRepository _quizRepository;
+        private IQuestionRepository _questionRepository;
+        private IPlayerResponseRepository _playerResponseRepository;
+        private IAnswerRepository _answerRepository;
 
         public UnitOfWork(KahootContext context)
         {
@@ -19,8 +25,22 @@ namespace Kahoot.Repository
         }
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);
-        public IPackageRepository PackageRepository => _packageRepository ??= new PackageRepository(_context);
-        public IUserPackageRepository UserPackageRepository => _userPackageRepository ??= new UserPackageRepository(_context);
+
+        public IUserAnswerRepository UserAnswerRepository => _userAnswerRepository ??= new UserAnswerRepository(_context);
+
+        public ITeamRepository TeamRepository => _teamRepository ??= new TeamRepository(_context);
+
+        public ISessionUserRepository SessionUserRepository => _sessionUserRepository ??= new SessionUserRepository(_context);
+
+        public ISessionRepository SessionRepository => _sessionRepository ??= new SessionRepository(_context);
+
+        public IQuizRepository QuizRepository => _quizRepository ??= new QuizRepository(_context);
+
+        public IQuestionRepository QuestionRepository => _questionRepository ??= new QuestionRepository(_context);
+
+        public IPlayerResponseRepository PlayerResponseRepository => _playerResponseRepository ??= new PlayerResponseRepository(_context);
+
+        public IAnswerRepository AnswerRepository => _answerRepository ??= new AnswerRepository(_context);
 
         public async Task BeginTransaction()
         {

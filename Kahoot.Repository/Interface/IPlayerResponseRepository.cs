@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Repository.Interface
 {
-    public interface IPackageRepository : IGenericRepository<Package>
+    public interface IPlayerResponseRepository : IGenericRepository<PlayerResponse>
     {
     }
 }

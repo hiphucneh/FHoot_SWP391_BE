@@ -40,7 +40,7 @@ namespace Kahoot.Service.Utilities
 
                 MailMessage mail = new MailMessage
                 {
-                    From = new MailAddress("support@nutridiet.com", "NutriDiet Support Team"),
+                    From = new MailAddress("support@kahoot.com", "Kahoot Support Team"),
                     Subject = subject,
                     Body = body ?? "No content available",
                     IsBodyHtml = true
@@ -75,22 +75,21 @@ namespace Kahoot.Service.Utilities
                 // Cải thiện nội dung email
                 var emailContent = $@"
                             <p>Xin chào {email},</p>
-                            <p>Bạn nhận được email này vì đã yêu cầu mã OTP để đăng nhập vào tài khoản NutriDiet của mình.</p>
+                            <p>Bạn nhận được email này vì đã yêu cầu mã OTP để đăng nhập vào tài khoản Kahoot của mình.</p>
                             <p>Mã OTP của bạn là: <strong>{otp}</strong></p>
                             <p>Mã này có hiệu lực trong 5 phút.</p>
                             <p>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
                             <p>Trân trọng,</p>
-                            <p>Đội ngũ hỗ trợ NutriDiet</p>
-                            <p>Website: https://www.nutridiet.live/</p>
+                            <p>Đội ngũ hỗ trợ Kahoot</p>
+                            <p>Website: https://kahoot-fe-nu.vercel.app</p>
                             ";
 
                 var emailSender = Environment.GetEnvironmentVariable("EMAIL_SENDER");
                 var emailSenderPassword = Environment.GetEnvironmentVariable("EMAIL_SENDER_PASSWORD");
 
-                // Sử dụng tên miền riêng (thay "no-reply@yourdomain.com" bằng tên miền của bạn)
                 MailMessage mail = new MailMessage
                 {
-                    From = new MailAddress("support@nutridiet.com", "NutriDiet Support Team"),
+                    From = new MailAddress("support@kahoot.com", "Kahoot Support Team"),
                     Subject = subject,
                     Body = emailContent,
                     IsBodyHtml = true

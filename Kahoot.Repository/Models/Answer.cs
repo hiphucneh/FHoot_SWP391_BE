@@ -13,7 +13,7 @@ public partial class Answer
 
     public bool IsCorrect { get; set; }
 
-    public virtual ICollection<PlayerResponse> PlayerResponses { get; set; } = new List<PlayerResponse>();
-
     public virtual Question Question { get; set; } = null!;
+
+    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
 }

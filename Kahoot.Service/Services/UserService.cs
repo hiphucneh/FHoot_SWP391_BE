@@ -58,7 +58,7 @@ namespace Kahoot.Service.Services
 
         public async Task<User> findUserById(int id)
         {
-            return await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.Role).Include(x => x.UserPackages).ThenInclude(x => x.Package).FirstOrDefaultAsync();
+            return await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.Role).FirstOrDefaultAsync();
         }
 
         public async Task<IBusinessResult> Register(RegisterRequest request)
@@ -72,13 +72,13 @@ namespace Kahoot.Service.Services
             request.Password = HashPassword(request.Password);
             var acc = request.Adapt<User>();
             acc.FullName = "New User";
-            acc.RoleId = (int)RoleEnum.Customer;
+            acc.RoleId = (int)RoleEnum.User;
             acc.Status = UserStatus.Inactive.ToString();
             acc.Avatar = "";
             await _unitOfWork.UserRepository.AddAsync(acc);
             await _unitOfWork.SaveChangesAsync();
 
-            await _googleService.SendEmailWithOTP(request.Email, "Mã OTP xác thực tài khoản NutriDiet");
+            await _googleService.SendEmailWithOTP(request.Email, "Mã OTP xác thực tài khoản Kahoot");
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to active account");
         }
 
@@ -111,7 +111,7 @@ namespace Kahoot.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
-            await _googleService.SendEmailWithOTP(request.Email, "Xác nhận lại OTP NutriDiet");
+            await _googleService.SendEmailWithOTP(request.Email, "Xác nhận lại OTP Kahoot");
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
@@ -181,7 +181,7 @@ namespace Kahoot.Service.Services
                     Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
                     Status = UserStatus.Active.ToString(),
-                    RoleId = (int)RoleEnum.Customer,
+                    RoleId = (int)RoleEnum.User,
                     FcmToken = fcmToken,
                     RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
@@ -255,7 +255,7 @@ namespace Kahoot.Service.Services
                         Password = HashPassword("12345"),
                         Avatar = userAvatar,
                         Status = UserStatus.Active.ToString(),
-                        RoleId = (int)RoleEnum.Customer,
+                        RoleId = (int)RoleEnum.User,
                         FcmToken = fcmToken, // Lưu FCM Token khi tạo user mới
                         RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                         RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
@@ -307,7 +307,7 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed");
             }
 
-            await _googleService.SendEmailWithOTP(email, "Reset mật khẩu cho tài khoản NutriDiet");
+            await _googleService.SendEmailWithOTP(email, "Reset mật khẩu cho tài khoản Kahoot");
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to reset password");
         }
@@ -341,10 +341,8 @@ namespace Kahoot.Service.Services
                 pageSize,
                 x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
                       (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search)
-                                                   || x.Email.ToLower().Contains(search)
-                                                   || x.Phone.ToLower().Contains(search)) &&
-                                                   x.RoleId != 1,
-                include: i => i.Include(x => x.UserPackages).ThenInclude(x => x.Package)
+                                                   || x.Email.ToLower().Contains(search)) &&
+                                                   x.RoleId != 1
             );
 
             if (users == null || !users.Any())
@@ -358,7 +356,7 @@ namespace Kahoot.Service.Services
         }
         public async Task<IBusinessResult> GetUserById(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.UserPackages).ThenInclude(x => x.Package).FirstOrDefaultAsync();
+            var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).FirstOrDefaultAsync();
             if (user == null || user.RoleId == 1)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
@@ -414,8 +412,6 @@ namespace Kahoot.Service.Services
             }
             user.FullName = request.FullName;
             user.Age = request.Age;
-            user.Gender = request.Gender.ToString();
-            user.Location = request.Location;
             if (request.Avatar != null)
             {
                 CloudinaryHelper cloudinary = new CloudinaryHelper();
@@ -425,74 +421,6 @@ namespace Kahoot.Service.Services
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-        }
-
-        public async Task<IBusinessResult> UpgradePackage(int packageId)
-        {
-            try
-            {
-                int userId = int.Parse(_userIdClaim);
-                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                if (user == null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
-                }
-                var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
-                if (package == null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
-                }
-
-                var existingPackage = await _unitOfWork.UserPackageRepository
-                    .GetByWhere(x => x.UserId == userId && x.Status == "Active" && x.ExpiryDate > DateTime.UtcNow)
-                    .FirstOrDefaultAsync();
-                if (existingPackage != null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có gói Premium đang hoạt động");
-                }
-
-                var userPackage = new UserPackage
-                {
-                    UserId = userId,
-                    PackageId = packageId,
-                    StartDate = DateTime.UtcNow,
-                    ExpiryDate = DateTime.UtcNow.AddDays(package.Duration ?? 0),
-                    Status = "Active"
-                };
-                await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
-                await _unitOfWork.SaveChangesAsync();
-                var response = userPackage.Adapt<UserPackageResponse>();
-                response.FullName = user.FullName;
-                response.PackageName = package.PackageName;
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
-            }
-            catch (Exception ex)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_INTERNAL_ERROR, "Lỗi server: " + ex.Message);
-            }
-        }
-
-        public async Task<IBusinessResult> IsPremium()
-        {
-            int userId = int.Parse(_userIdClaim);
-
-            var isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
-
-            // Cập nhật trạng thái gói hết hạn
-            var expiredPackages = await _unitOfWork.UserPackageRepository
-                .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
-                .ToListAsync();
-            if (expiredPackages.Any())
-            {
-                foreach (var package in expiredPackages)
-                {
-                    package.Status = "Inactive";
-                    await _unitOfWork.UserPackageRepository.UpdateAsync(package);
-                }
-                await _unitOfWork.SaveChangesAsync();
-            }
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, isPremium);
         }
 
         public async Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status)

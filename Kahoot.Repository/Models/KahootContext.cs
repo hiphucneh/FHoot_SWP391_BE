@@ -17,196 +17,138 @@ public partial class KahootContext : DbContext
 
     public virtual DbSet<Answer> Answers { get; set; }
 
-    public virtual DbSet<GameSession> GameSessions { get; set; }
-
-    public virtual DbSet<GameSessionUser> GameSessionUsers { get; set; }
-
-    public virtual DbSet<Package> Packages { get; set; }
-
-    public virtual DbSet<PlayerResponse> PlayerResponses { get; set; }
-
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<Quiz> Quizzes { get; set; }
+
+    public virtual DbSet<QuizSession> QuizSessions { get; set; }
+
+    public virtual DbSet<QuizSessionTeam> QuizSessionTeams { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserPackage> UserPackages { get; set; }
+    public virtual DbSet<UserAnswer> UserAnswers { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(local);database=Kahoot;uid=sa;pwd=12345;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Answer>(entity =>
         {
-            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D482502484AF3CDD");
+            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D4825024FC889802");
 
             entity.ToTable("Answer");
 
+            entity.HasIndex(e => e.QuestionId, "UX_Answer_Correct")
+                .IsUnique()
+                .HasFilter("([IsCorrect]=(1))");
+
             entity.Property(e => e.AnswerId).HasColumnName("AnswerID");
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
 
-            entity.HasOne(d => d.Question).WithMany(p => p.Answers)
-                .HasForeignKey(d => d.QuestionId)
+            entity.HasOne(d => d.Question).WithOne(p => p.Answer)
+                .HasForeignKey<Answer>(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Answer_Question");
-        });
-
-        modelBuilder.Entity<GameSession>(entity =>
-        {
-            entity.HasKey(e => e.SessionId).HasName("PK__GameSess__C9F49270DD157122");
-
-            entity.ToTable("GameSession");
-
-            entity.HasIndex(e => e.SessionCode, "UQ__GameSess__30AEBB84E4F5D741").IsUnique();
-
-            entity.Property(e => e.SessionId).HasColumnName("SessionID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.EndTime).HasColumnType("datetime");
-            entity.Property(e => e.HostUserId).HasColumnName("HostUserID");
-            entity.Property(e => e.QuizId).HasColumnName("QuizID");
-            entity.Property(e => e.SessionCode).HasMaxLength(20);
-            entity.Property(e => e.StartTime).HasColumnType("datetime");
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .HasDefaultValue("Waiting");
-
-            entity.HasOne(d => d.HostUser).WithMany(p => p.GameSessions)
-                .HasForeignKey(d => d.HostUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_GameSession_User");
-
-            entity.HasOne(d => d.Quiz).WithMany(p => p.GameSessions)
-                .HasForeignKey(d => d.QuizId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_GameSession_Quiz");
-        });
-
-        modelBuilder.Entity<GameSessionUser>(entity =>
-        {
-            entity.HasKey(e => e.SessionUserId).HasName("PK__GameSess__96CEF1E0806C16D6");
-
-            entity.ToTable("GameSessionUser");
-
-            entity.Property(e => e.SessionUserId).HasColumnName("SessionUserID");
-            entity.Property(e => e.JoinedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Score).HasDefaultValue(0);
-            entity.Property(e => e.SessionId).HasColumnName("SessionID");
-            entity.Property(e => e.UserId).HasColumnName("UserID");
-
-            entity.HasOne(d => d.Session).WithMany(p => p.GameSessionUsers)
-                .HasForeignKey(d => d.SessionId)
-                .HasConstraintName("FK_GameSessionUser_Session");
-
-            entity.HasOne(d => d.User).WithMany(p => p.GameSessionUsers)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_GameSessionUser_User");
-        });
-
-        modelBuilder.Entity<Package>(entity =>
-        {
-            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035EC6B4DF7EF");
-
-            entity.ToTable("Package");
-
-            entity.HasIndex(e => e.PackageName, "UQ__Package__73856F7A0C0A5003").IsUnique();
-
-            entity.Property(e => e.PackageId).HasColumnName("PackageID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(255);
-            entity.Property(e => e.PackageName).HasMaxLength(100);
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<PlayerResponse>(entity =>
-        {
-            entity.HasKey(e => e.ResponseId).HasName("PK__PlayerRe__1AAA640CB285227F");
-
-            entity.ToTable("PlayerResponse");
-
-            entity.Property(e => e.ResponseId).HasColumnName("ResponseID");
-            entity.Property(e => e.AnswerId).HasColumnName("AnswerID");
-            entity.Property(e => e.AnsweredAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.PointsAwarded).HasDefaultValue(0);
-            entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
-            entity.Property(e => e.SessionUserId).HasColumnName("SessionUserID");
-
-            entity.HasOne(d => d.Answer).WithMany(p => p.PlayerResponses)
-                .HasForeignKey(d => d.AnswerId)
-                .HasConstraintName("FK_PlayerResponse_Answer");
-
-            entity.HasOne(d => d.Question).WithMany(p => p.PlayerResponses)
-                .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PlayerResponse_Question");
-
-            entity.HasOne(d => d.SessionUser).WithMany(p => p.PlayerResponses)
-                .HasForeignKey(d => d.SessionUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PlayerResponse_SessionUser");
         });
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C1B0C73F9");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8CEE9A52D7");
 
             entity.ToTable("Question");
 
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
-            entity.Property(e => e.QuestionType)
-                .HasMaxLength(50)
-                .HasDefaultValue("MultipleChoice");
             entity.Property(e => e.QuizId).HasColumnName("QuizID");
-            entity.Property(e => e.TimeLimit).HasDefaultValue(30);
+            entity.Property(e => e.TimeLimitSec).HasDefaultValue(15);
 
             entity.HasOne(d => d.Quiz).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.QuizId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Question_Quiz");
         });
 
         modelBuilder.Entity<Quiz>(entity =>
         {
-            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6E29A6B458");
+            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6EF5BB13DF");
 
             entity.ToTable("Quiz");
 
             entity.Property(e => e.QuizId).HasColumnName("QuizID");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.QuizName).HasMaxLength(255);
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(255);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Quizzes)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Quiz_User");
+                .HasConstraintName("FK_Quiz_CreatedBy");
+        });
+
+        modelBuilder.Entity<QuizSession>(entity =>
+        {
+            entity.HasKey(e => e.QuizSessionId).HasName("PK__QuizSess__12115251D90FB3CB");
+
+            entity.ToTable("QuizSession");
+
+            entity.Property(e => e.QuizSessionId).HasColumnName("QuizSessionID");
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.EndedManually).HasDefaultValue(false);
+            entity.Property(e => e.QuizId).HasColumnName("QuizID");
+            entity.Property(e => e.SessionName).HasMaxLength(255);
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Quiz).WithMany(p => p.QuizSessions)
+                .HasForeignKey(d => d.QuizId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_QuizSession_Quiz");
+        });
+
+        modelBuilder.Entity<QuizSessionTeam>(entity =>
+        {
+            entity.HasKey(e => e.QuizSessionTeamId).HasName("PK__QuizSess__9B66CE9155570409");
+
+            entity.ToTable("QuizSessionTeam");
+
+            entity.Property(e => e.QuizSessionTeamId).HasColumnName("QuizSessionTeamID");
+            entity.Property(e => e.QuizSessionId).HasColumnName("QuizSessionID");
+            entity.Property(e => e.TeamName).HasMaxLength(255);
+            entity.Property(e => e.TotalScore).HasDefaultValue(0);
+
+            entity.HasOne(d => d.QuizSession).WithMany(p => p.QuizSessionTeams)
+                .HasForeignKey(d => d.QuizSessionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_QuizSessionTeam_QuizSession");
+
+            entity.HasMany(d => d.Users).WithMany(p => p.QuizSessionTeams)
+                .UsingEntity<Dictionary<string, object>>(
+                    "QuizSessionTeamMember",
+                    r => r.HasOne<User>().WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_TeamMember_User"),
+                    l => l.HasOne<QuizSessionTeam>().WithMany()
+                        .HasForeignKey("QuizSessionTeamId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_TeamMember_Team"),
+                    j =>
+                    {
+                        j.HasKey("QuizSessionTeamId", "UserId").HasName("PK__QuizSess__4A1E425BBB3BE414");
+                        j.ToTable("QuizSessionTeamMember");
+                        j.IndexerProperty<int>("QuizSessionTeamId").HasColumnName("QuizSessionTeamID");
+                        j.IndexerProperty<int>("UserId").HasColumnName("UserID");
+                    });
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A36AA694B");
+            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A71ED98E8");
 
             entity.ToTable("Role");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B61606022413F").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B6160D9B97906").IsUnique();
 
             entity.Property(e => e.RoleId)
                 .ValueGeneratedNever()
@@ -216,11 +158,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC508F5C90");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACFC0049CB");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D1053472D47147").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D10534598DCF3B").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(255);
@@ -228,10 +170,7 @@ public partial class KahootContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("fcmToken");
             entity.Property(e => e.FullName).HasMaxLength(255);
-            entity.Property(e => e.Gender).HasMaxLength(10);
-            entity.Property(e => e.Location).HasMaxLength(20);
             entity.Property(e => e.Password).HasMaxLength(255);
-            entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.RefreshTokenExpiryTime).HasColumnType("datetime");
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.Status)
@@ -244,28 +183,40 @@ public partial class KahootContext : DbContext
                 .HasConstraintName("FK_User_Role");
         });
 
-        modelBuilder.Entity<UserPackage>(entity =>
+        modelBuilder.Entity<UserAnswer>(entity =>
         {
-            entity.HasKey(e => e.UserPackageId).HasName("PK__UserPack__AE9B91FAAFBEB76E");
+            entity.HasKey(e => e.UserAnswerId).HasName("PK__UserAnsw__47CE235F10477B10");
 
-            entity.ToTable("UserPackage");
+            entity.ToTable("UserAnswer");
 
-            entity.Property(e => e.UserPackageId).HasColumnName("UserPackageID");
-            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
-            entity.Property(e => e.PackageId).HasColumnName("PackageID");
-            entity.Property(e => e.StartDate)
+            entity.Property(e => e.UserAnswerId).HasColumnName("UserAnswerID");
+            entity.Property(e => e.AnswerId).HasColumnName("AnswerID");
+            entity.Property(e => e.AnswerTime)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
+            entity.Property(e => e.QuizSessionId).HasColumnName("QuizSessionID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.Package).WithMany(p => p.UserPackages)
-                .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK_UserPackage_Package");
+            entity.HasOne(d => d.Answer).WithMany(p => p.UserAnswers)
+                .HasForeignKey(d => d.AnswerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserAnswer_Answer");
 
-            entity.HasOne(d => d.User).WithMany(p => p.UserPackages)
+            entity.HasOne(d => d.Question).WithMany(p => p.UserAnswers)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserAnswer_Question");
+
+            entity.HasOne(d => d.QuizSession).WithMany(p => p.UserAnswers)
+                .HasForeignKey(d => d.QuizSessionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserAnswer_QuizSession");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserAnswers)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK_UserPackage_User");
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserAnswer_User");
         });
 
         OnModelCreatingPartial(modelBuilder);

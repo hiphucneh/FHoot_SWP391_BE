@@ -9,15 +9,15 @@ public partial class Question
 
     public int QuizId { get; set; }
 
-    public string Content { get; set; } = null!;
+    public string QuestionText { get; set; } = null!;
 
-    public string? QuestionType { get; set; }
+    public int SortOrder { get; set; }
 
-    public int? TimeLimit { get; set; }
+    public int TimeLimitSec { get; set; }
 
-    public virtual ICollection<Answer> Answers { get; set; } = new List<Answer>();
-
-    public virtual ICollection<PlayerResponse> PlayerResponses { get; set; } = new List<PlayerResponse>();
+    public virtual Answer? Answer { get; set; }
 
     public virtual Quiz Quiz { get; set; } = null!;
+
+    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
 }

@@ -86,33 +86,5 @@ namespace Kahoot.Service.Utilities
                 return 0;
             }
         }
-
-        public async Task<IBusinessResult> EnableReminder()
-        {
-            int userId = int.Parse(_userIdClaim);
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
-            }
-
-            if (string.IsNullOrEmpty(user.FcmToken))
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "FCM token is required");
-            }
-
-
-            // EnableReminder flag
-            user.EnableReminder = !(user.EnableReminder ?? false);
-            await _unitOfWork.UserRepository.UpdateAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-
-            string message = user.EnableReminder.Value
-                ? $"Reminder enabled"
-                : $"Reminder disabled";
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, message);
-        }
     }
 }

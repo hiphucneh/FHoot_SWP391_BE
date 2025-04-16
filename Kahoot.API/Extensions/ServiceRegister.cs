@@ -37,7 +37,6 @@ namespace Kahoot.API.Extensions
             AddCorsToThisWeb(services);
             AddEnum(services);
             AddKebab(services);
-            AddMapster();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -47,7 +46,6 @@ namespace Kahoot.API.Extensions
             services.AddScoped<FirebaseService>();
 
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IPackageService, PackageService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
@@ -83,11 +81,10 @@ namespace Kahoot.API.Extensions
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "Kahoot_API",
+                    Title = "Kahoot.API v1",
                     Version = "v1",
                     Description = "API for managing Kahoot app",
                 });
-
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -113,8 +110,8 @@ namespace Kahoot.API.Extensions
                         Array.Empty<string>()
                     }
                 });
-
             });
+
 
             return services;
         }
@@ -150,12 +147,6 @@ namespace Kahoot.API.Extensions
                     {
                         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     });
-        }
-
-        private static void AddMapster()
-        {
-            TypeAdapterConfig.GlobalSettings.NewConfig<UserPackage, UserPackagesResponse>()
-                .Map(dest => dest.PackageName, src => src.Package.PackageName);
         }
     }
 }

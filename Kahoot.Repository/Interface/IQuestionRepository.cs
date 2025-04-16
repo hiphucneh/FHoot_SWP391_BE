@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Repository.Interface
 {
-    public interface IUserPackageRepository : IGenericRepository<UserPackage>
+    public interface IQuestionRepository : IGenericRepository<Question>
     {
-        Task<bool> IsUserPremiumAsync(int userId);
     }
 }
