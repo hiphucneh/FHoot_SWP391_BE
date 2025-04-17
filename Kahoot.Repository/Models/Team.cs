@@ -13,6 +13,10 @@ public partial class Team
 
     public int? TotalScore { get; set; }
 
+    public DateTime? Createdat { get; set; }
+
+    public DateTime? UpdateAt { get; set; }
+
     public virtual Session Session { get; set; } = null!;
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();

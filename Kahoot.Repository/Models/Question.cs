@@ -11,15 +11,19 @@ public partial class Question
 
     public string QuestionText { get; set; } = null!;
 
+    public bool IsRandomAnswer { get; set; }
+
+    public string? ImgUrl { get; set; }
+
     public int SortOrder { get; set; }
 
     public int TimeLimitSec { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime Createdat { get; set; }
 
-    public DateTime? Updateat { get; set; }
+    public DateTime UpdateAt { get; set; }
 
-    public virtual Answer? Answer { get; set; }
+    public virtual ICollection<Answer> Answers { get; set; } = new List<Answer>();
 
     public virtual Quiz Quiz { get; set; } = null!;
 

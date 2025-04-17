@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Repository.Interface
 {
-    public interface ISessionRepository : IGenericRepository<QuizSession>
+    public interface ISessionRepository : IGenericRepository<Session>
     {
     }
 }

@@ -5,7 +5,7 @@ using System;
 
 namespace Kahoot.Repository.Repositories
 {
-    public class SessionRepository : GenericRepository<QuizSession>, ISessionRepository
+    public class SessionRepository : GenericRepository<Session>, ISessionRepository
     {
         public SessionRepository(KahootContext context) : base(context)
         {

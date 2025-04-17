@@ -5,7 +5,7 @@ using System;
 
 namespace Kahoot.Repository.Repositories
 {
-    public class TeamRepository : GenericRepository<QuizSessionTeam>, ITeamRepository
+    public class TeamRepository : GenericRepository<Team>, ITeamRepository
     {
         public TeamRepository(KahootContext context) : base(context)
         {

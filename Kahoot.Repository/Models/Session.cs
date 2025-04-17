@@ -11,9 +11,9 @@ public partial class Session
 
     public string SessionName { get; set; } = null!;
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Endat { get; set; }
+    public DateTime? EndAt { get; set; }
 
     public bool? EndedManually { get; set; }
 

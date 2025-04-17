@@ -7,12 +7,8 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Service.ModelDTOs.Request
 {
-    public class QuizRequest
+    public class ImageUpload
     {
-        public string Title { get; set; } = null!;
-
-        public string? Description { get; set; }
-
-        public IFormFile? ImgUrl { get; set; }
+        public IFormFile ImgUrl { get; set; }
     }
 }

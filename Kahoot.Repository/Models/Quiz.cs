@@ -11,11 +11,13 @@ public partial class Quiz
 
     public string? Description { get; set; }
 
+    public string? ImgUrl { get; set; }
+
     public int CreatedBy { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updateat { get; set; }
+    public DateTime? UpdateAt { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 
