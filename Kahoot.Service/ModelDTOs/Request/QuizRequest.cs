@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NutriDiet.Service.Enums
+namespace Kahoot.Service.ModelDTOs.Request
 {
-    public enum RoleEnum
+    internal class QuizRequest
     {
-        Admin = 1,
-        Customer = 2,
-        Teacher = 3,
     }
 }

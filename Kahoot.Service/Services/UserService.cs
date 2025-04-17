@@ -72,7 +72,7 @@ namespace Kahoot.Service.Services
             request.Password = HashPassword(request.Password);
             var acc = request.Adapt<User>();
             acc.FullName = "New User";
-            acc.RoleId = (int)RoleEnum.User;
+            acc.RoleId = (int)RoleEnum.Customer;
             acc.Status = UserStatus.Inactive.ToString();
             acc.Avatar = "";
             await _unitOfWork.UserRepository.AddAsync(acc);
@@ -181,7 +181,7 @@ namespace Kahoot.Service.Services
                     Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
                     Status = UserStatus.Active.ToString(),
-                    RoleId = (int)RoleEnum.User,
+                    RoleId = (int)RoleEnum.Customer,
                     FcmToken = fcmToken,
                     RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
@@ -255,7 +255,7 @@ namespace Kahoot.Service.Services
                         Password = HashPassword("12345"),
                         Avatar = userAvatar,
                         Status = UserStatus.Active.ToString(),
-                        RoleId = (int)RoleEnum.User,
+                        RoleId = (int)RoleEnum.Customer,
                         FcmToken = fcmToken, // Lưu FCM Token khi tạo user mới
                         RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                         RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)

@@ -13,11 +13,13 @@ public partial class Quiz
 
     public int CreatedBy { get; set; }
 
-    public DateTime? CreatedDate { get; set; }
+    public DateTime? Createdat { get; set; }
+
+    public DateTime? Updateat { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
-    public virtual ICollection<QuizSession> QuizSessions { get; set; } = new List<QuizSession>();
+    public virtual ICollection<Session> Sessions { get; set; } = new List<Session>();
 }

@@ -7,7 +7,7 @@ public partial class UserAnswer
 {
     public int UserAnswerId { get; set; }
 
-    public int QuizSessionId { get; set; }
+    public int SessionId { get; set; }
 
     public int UserId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class UserAnswer
 
     public virtual Question Question { get; set; } = null!;
 
-    public virtual QuizSession QuizSession { get; set; } = null!;
+    public virtual Session Session { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

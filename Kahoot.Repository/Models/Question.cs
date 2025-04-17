@@ -15,6 +15,10 @@ public partial class Question
 
     public int TimeLimitSec { get; set; }
 
+    public DateTime? Createdat { get; set; }
+
+    public DateTime? Updateat { get; set; }
+
     public virtual Answer? Answer { get; set; }
 
     public virtual Quiz Quiz { get; set; } = null!;

@@ -46,6 +46,7 @@ namespace Kahoot.API.Extensions
             services.AddScoped<FirebaseService>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IQuizService, QuizService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)

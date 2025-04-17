@@ -9,7 +9,7 @@ GO
 INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Age], [Avatar], [fcmToken], [Status], [RoleID]) VALUES 
 (1, N'New User', N'user@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 21, N'', NULL, N'Active', 2),
 (2, N'Admin', N'admin@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 30, N'', NULL, N'Active', 1),
-(3, N'Tran Van Tai', N'tranvantai@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 20, N'', NULL, N'Active', 2),
+(3, N'Teacher', N'teacher@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 20, N'', NULL, N'Active', 3),
 (4, N'Nguyen Thi Hanh', N'hanhnt@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 18, N'', NULL, N'Active', 2),
 (5, N'Pham Nguyen', N'nguyenpham@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 21, N'', NULL, N'Active', 2),
 (6, N'Nguyen Tuan Kiet', N'kietnguyen@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', 22, N'', NULL, N'Active', 2),

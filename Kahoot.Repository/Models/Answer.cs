@@ -13,6 +13,10 @@ public partial class Answer
 
     public bool IsCorrect { get; set; }
 
+    public DateTime? Createdat { get; set; }
+
+    public DateTime? Updateat { get; set; }
+
     public virtual Question Question { get; set; } = null!;
 
     public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();

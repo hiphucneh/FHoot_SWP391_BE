@@ -33,5 +33,5 @@ public partial class User
 
     public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
 
-    public virtual ICollection<QuizSessionTeam> QuizSessionTeams { get; set; } = new List<QuizSessionTeam>();
+    public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }
