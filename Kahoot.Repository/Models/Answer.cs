@@ -17,7 +17,7 @@ public partial class Answer
 
     public DateTime UpdatedAt { get; set; }
 
-    public virtual Question Question { get; set; } = null!;
+    public virtual ICollection<PlayerAnswer> PlayerAnswers { get; set; } = new List<PlayerAnswer>();
 
-    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
+    public virtual Question Question { get; set; } = null!;
 }

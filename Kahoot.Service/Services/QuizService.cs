@@ -57,7 +57,7 @@ namespace Kahoot.Service.Services
             var quiz = new Quiz();
             quiz.CreatedBy = int.Parse(userIdClaim);
             quiz.CreatedAt = DateTime.UtcNow;
-            quiz.UpdateAt = DateTime.UtcNow;
+            quiz.UpdatedAt = DateTime.UtcNow;
             quiz.Description = request.Description;
             quiz.Title = request.Title;
             if (quiz.ImgUrl != null) {
@@ -99,7 +99,7 @@ namespace Kahoot.Service.Services
                     return new BusinessResult(Const.ERROR_EXCEPTION, "Upload image error!");
                 }
             }
-            quiz.UpdateAt = DateTime.UtcNow;
+            quiz.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.QuizRepository.UpdateAsync(quiz);
             await _unitOfWork.SaveChangesAsync();
@@ -156,8 +156,8 @@ namespace Kahoot.Service.Services
                     TimeLimitSec = qr.TimeLimitSec,
                     IsRandomAnswer = qr.IsRandomAnswer,
                     SortOrder = nextOrder++,
-                    Createdat = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 question.Answers = qr.Answers.Select(ar => new Answer
@@ -171,7 +171,7 @@ namespace Kahoot.Service.Services
                 quiz.Questions.Add(question);
             }
 
-            quiz.UpdateAt = DateTime.UtcNow;
+            quiz.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.QuizRepository.UpdateAsync(quiz);
 
             await _unitOfWork.SaveChangesAsync();
@@ -207,8 +207,8 @@ namespace Kahoot.Service.Services
                     TimeLimitSec = qr.TimeLimitSec,
                     IsRandomAnswer = qr.IsRandomAnswer,
                     SortOrder = sortOrder++,
-                    Createdat = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 question.Answers = qr.Answers.Select(ar => new Answer
@@ -223,7 +223,7 @@ namespace Kahoot.Service.Services
             }
 
             // 4) Cập nhật timestamp và save
-            quiz.UpdateAt = DateTime.UtcNow;
+            quiz.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.QuizRepository.UpdateAsync(quiz);
             await _unitOfWork.SaveChangesAsync();
 
@@ -266,7 +266,7 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.ERROR_EXCEPTION,
                     "Upload image failed: " + ex.Message);
             }
-            question.UpdateAt = DateTime.UtcNow;
+            question.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.QuestionRepository.UpdateAsync(question);
             await _unitOfWork.SaveChangesAsync();
 

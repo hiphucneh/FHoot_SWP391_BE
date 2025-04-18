@@ -91,7 +91,6 @@ namespace Kahoot.API.Controllers
             {
                 return Ok(new
                 {
-                    Id = user.UserId,
                     Email = user.Email ?? "noemail@example.com",
                     Role = user.Role?.RoleName,
                     name = user.FullName ?? "Anonymous",

@@ -11,15 +11,17 @@ public partial class Session
 
     public string SessionName { get; set; } = null!;
 
-    public DateTime? CreatedAt { get; set; }
+    public string SessionCode { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? EndAt { get; set; }
 
-    public bool? EndedManually { get; set; }
+    public bool EndedManually { get; set; }
 
     public virtual Quiz Quiz { get; set; } = null!;
 
-    public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
+    public virtual ICollection<Section> Sections { get; set; } = new List<Section>();
 
-    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
+    public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

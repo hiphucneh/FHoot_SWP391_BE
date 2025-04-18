@@ -25,10 +25,6 @@ namespace Kahoot.Repository.Repositories
             _context.Entry(entity).State = EntityState.Unchanged;
         }
 
-        public IQueryable<TEntity> GetAll()
-        {
-            return _context.Set<TEntity>().AsQueryable().AsNoTracking();
-        }
 
         public async Task<TEntity> GetByIdAsync(object id)
         {

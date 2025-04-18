@@ -15,9 +15,9 @@ public partial class Quiz
 
     public int CreatedBy { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime? UpdateAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 

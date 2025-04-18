@@ -11,13 +11,13 @@ public partial class Team
 
     public string TeamName { get; set; } = null!;
 
-    public int? TotalScore { get; set; }
+    public int TotalScore { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime? UpdateAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 
     public virtual Session Session { get; set; } = null!;
-
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

@@ -19,13 +19,13 @@ public partial class Question
 
     public int TimeLimitSec { get; set; }
 
-    public DateTime Createdat { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime UpdateAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 
     public virtual ICollection<Answer> Answers { get; set; } = new List<Answer>();
 
-    public virtual Quiz Quiz { get; set; } = null!;
+    public virtual ICollection<QuestionSection> QuestionSections { get; set; } = new List<QuestionSection>();
 
-    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
+    public virtual Quiz Quiz { get; set; } = null!;
 }

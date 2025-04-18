@@ -27,11 +27,9 @@ public partial class User
 
     public DateTime? RefreshTokenExpiryTime { get; set; }
 
+    public virtual ICollection<Player> Players { get; set; } = new List<Player>();
+
     public virtual ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
     public virtual Role Role { get; set; } = null!;
-
-    public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
-
-    public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

@@ -4,7 +4,6 @@ namespace Kahoot.Repository.Base
 {
     public interface IGenericRepository<TEntity> where TEntity : class
     {
-        IQueryable<TEntity> GetAll();
 
         Task<TEntity> GetByIdAsync(object id);
         IQueryable<TEntity> GetByWhere(Expression<Func<TEntity, bool>> predicate);

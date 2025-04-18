@@ -103,9 +103,10 @@ CREATE TABLE [Session] (
     SessionID INT IDENTITY(1,1) PRIMARY KEY,
     QuizID INT NOT NULL,
     SessionName NVARCHAR(255) NOT NULL,  -- Tên phiên thi
+	SessionCode NVARCHAR(20) NOT NULL UNIQUE,
     CreatedAt DATETIME DEFAULT GETDATE(),
     EndAt DATETIME DEFAULT GETDATE(),        -- Thời gian kết thúc dự kiến (có thể được cập nhật lại khi host bấm dừng)
-    EndedManually BIT DEFAULT 0,         -- 0: kết thúc tự động (khi hết câu hỏi); 1: host bấm kết thúc bài thi
+    EndedManually BIT DEFAULT 0,        
     CONSTRAINT FK_QuizSession_Quiz FOREIGN KEY (QuizID) REFERENCES Quiz(QuizID) On Delete Cascade
 );
 

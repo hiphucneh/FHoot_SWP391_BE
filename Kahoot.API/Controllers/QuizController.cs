@@ -27,7 +27,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
         public async Task<IActionResult> GetQuizById(int id)
         {
             var result = await _quizService.FindQuizById(id);
