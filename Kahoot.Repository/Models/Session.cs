@@ -19,9 +19,9 @@ public partial class Session
 
     public bool EndedManually { get; set; }
 
-    public virtual Quiz Quiz { get; set; } = null!;
+    public virtual ICollection<QuestionSession> QuestionSessions { get; set; } = new List<QuestionSession>();
 
-    public virtual ICollection<Section> Sections { get; set; } = new List<Section>();
+    public virtual Quiz Quiz { get; set; } = null!;
 
     public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
 }

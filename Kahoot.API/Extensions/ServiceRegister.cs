@@ -23,9 +23,12 @@ namespace Kahoot.API.Extensions
     {
         public static void RegisterServices(IServiceCollection services, IConfiguration configuration)
         {
-            DotNetEnv.Env.Load("../.env");
 
-            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<KahootContext>(opt =>
+                opt.UseSqlServer(connectionString)
+                   .EnableSensitiveDataLogging()
+            );
 
             services.AddDbContext<KahootContext>(options =>
             {
@@ -47,6 +50,8 @@ namespace Kahoot.API.Extensions
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddScoped<ISessionService, SessionService>();
+            services.AddSignalR();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
@@ -68,6 +73,21 @@ namespace Kahoot.API.Extensions
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        // Nếu request đi vào hub path và có access_token
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/hubs/game")))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

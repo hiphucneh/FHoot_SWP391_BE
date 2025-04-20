@@ -9,7 +9,7 @@ public partial class PlayerAnswer
 
     public int PlayerId { get; set; }
 
-    public int QuestionSectionId { get; set; }
+    public int QuestionSessionId { get; set; }
 
     public int AnswerId { get; set; }
 
@@ -23,5 +23,5 @@ public partial class PlayerAnswer
 
     public virtual Player Player { get; set; } = null!;
 
-    public virtual QuestionSection QuestionSection { get; set; } = null!;
+    public virtual QuestionSession QuestionSession { get; set; } = null!;
 }

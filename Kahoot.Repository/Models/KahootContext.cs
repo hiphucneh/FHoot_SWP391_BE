@@ -23,13 +23,11 @@ public partial class KahootContext : DbContext
 
     public virtual DbSet<Question> Questions { get; set; }
 
-    public virtual DbSet<QuestionSection> QuestionSections { get; set; }
+    public virtual DbSet<QuestionSession> QuestionSessions { get; set; }
 
     public virtual DbSet<Quiz> Quizzes { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
-
-    public virtual DbSet<Section> Sections { get; set; }
 
     public virtual DbSet<Session> Sessions { get; set; }
 
@@ -41,7 +39,7 @@ public partial class KahootContext : DbContext
     {
         modelBuilder.Entity<Answer>(entity =>
         {
-            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D482502490CA19B4");
+            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D4825024A1E3D538");
 
             entity.ToTable("Answer");
 
@@ -57,7 +55,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Player>(entity =>
         {
-            entity.HasKey(e => e.PlayerId).HasName("PK__Player__4A4E74A85EDD7142");
+            entity.HasKey(e => e.PlayerId).HasName("PK__Player__4A4E74A84407D288");
 
             entity.ToTable("Player");
 
@@ -70,6 +68,7 @@ public partial class KahootContext : DbContext
 
             entity.HasOne(d => d.Team).WithMany(p => p.Players)
                 .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Player_Team");
 
             entity.HasOne(d => d.User).WithMany(p => p.Players)
@@ -79,7 +78,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<PlayerAnswer>(entity =>
         {
-            entity.HasKey(e => e.PlayerAnswerId).HasName("PK__PlayerAn__B300DB8C4EAD0E2B");
+            entity.HasKey(e => e.PlayerAnswerId).HasName("PK__PlayerAn__B300DB8CE35AF5E4");
 
             entity.ToTable("PlayerAnswer");
 
@@ -89,7 +88,7 @@ public partial class KahootContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.PlayerId).HasColumnName("PlayerID");
-            entity.Property(e => e.QuestionSectionId).HasColumnName("QuestionSectionID");
+            entity.Property(e => e.QuestionSessionId).HasColumnName("QuestionSessionID");
 
             entity.HasOne(d => d.Answer).WithMany(p => p.PlayerAnswers)
                 .HasForeignKey(d => d.AnswerId)
@@ -100,15 +99,15 @@ public partial class KahootContext : DbContext
                 .HasForeignKey(d => d.PlayerId)
                 .HasConstraintName("FK_PA_Player");
 
-            entity.HasOne(d => d.QuestionSection).WithMany(p => p.PlayerAnswers)
-                .HasForeignKey(d => d.QuestionSectionId)
+            entity.HasOne(d => d.QuestionSession).WithMany(p => p.PlayerAnswers)
+                .HasForeignKey(d => d.QuestionSessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PA_QuestionSection");
+                .HasConstraintName("FK_PA_QuestionSession");
         });
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C4124C5CA");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8CAB798F41");
 
             entity.ToTable("Question");
 
@@ -127,33 +126,33 @@ public partial class KahootContext : DbContext
                 .HasConstraintName("FK_Question_Quiz");
         });
 
-        modelBuilder.Entity<QuestionSection>(entity =>
+        modelBuilder.Entity<QuestionSession>(entity =>
         {
-            entity.HasKey(e => e.QuestionSectionId).HasName("PK__Question__BD5713265E6A414E");
+            entity.HasKey(e => e.QuestionSessionId).HasName("PK__Question__B37E2729EF71AB8D");
 
-            entity.ToTable("QuestionSection");
+            entity.ToTable("QuestionSession");
 
-            entity.Property(e => e.QuestionSectionId).HasColumnName("QuestionSectionID");
+            entity.Property(e => e.QuestionSessionId).HasColumnName("QuestionSessionID");
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
             entity.Property(e => e.RunAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.SectionId).HasColumnName("SectionID");
+            entity.Property(e => e.SessionId).HasColumnName("SessionID");
             entity.Property(e => e.SortOrder).HasDefaultValue(1);
 
-            entity.HasOne(d => d.Question).WithMany(p => p.QuestionSections)
+            entity.HasOne(d => d.Question).WithMany(p => p.QuestionSessions)
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_QS_Question");
 
-            entity.HasOne(d => d.Section).WithMany(p => p.QuestionSections)
-                .HasForeignKey(d => d.SectionId)
-                .HasConstraintName("FK_QS_Section");
+            entity.HasOne(d => d.Session).WithMany(p => p.QuestionSessions)
+                .HasForeignKey(d => d.SessionId)
+                .HasConstraintName("FK_QS_Session");
         });
 
         modelBuilder.Entity<Quiz>(entity =>
         {
-            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6E27D24BF1");
+            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6E6B402A0F");
 
             entity.ToTable("Quiz");
 
@@ -174,11 +173,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A3F6B90A7");
+            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A040AF42D");
 
             entity.ToTable("Role");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B6160791F3260").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B616015E81294").IsUnique();
 
             entity.Property(e => e.RoleId)
                 .ValueGeneratedNever()
@@ -186,30 +185,13 @@ public partial class KahootContext : DbContext
             entity.Property(e => e.RoleName).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Section>(entity =>
-        {
-            entity.HasKey(e => e.SectionId).HasName("PK__Section__80EF089225611886");
-
-            entity.ToTable("Section");
-
-            entity.Property(e => e.SectionId).HasColumnName("SectionID");
-            entity.Property(e => e.EndAt).HasColumnType("datetime");
-            entity.Property(e => e.SectionName).HasMaxLength(255);
-            entity.Property(e => e.SessionId).HasColumnName("SessionID");
-            entity.Property(e => e.StartAt).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Session).WithMany(p => p.Sections)
-                .HasForeignKey(d => d.SessionId)
-                .HasConstraintName("FK_Section_Session");
-        });
-
         modelBuilder.Entity<Session>(entity =>
         {
-            entity.HasKey(e => e.SessionId).HasName("PK__Session__C9F49270C13EBB34");
+            entity.HasKey(e => e.SessionId).HasName("PK__Session__C9F4927049EACCA8");
 
             entity.ToTable("Session");
 
-            entity.HasIndex(e => e.SessionCode, "UQ__Session__30AEBB84A10DBE3C").IsUnique();
+            entity.HasIndex(e => e.SessionCode, "UQ__Session__30AEBB8412CFA3B0").IsUnique();
 
             entity.Property(e => e.SessionId).HasColumnName("SessionID");
             entity.Property(e => e.CreatedAt)
@@ -227,7 +209,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Team>(entity =>
         {
-            entity.HasKey(e => e.TeamId).HasName("PK__Team__123AE7B9FCD3C68F");
+            entity.HasKey(e => e.TeamId).HasName("PK__Team__123AE7B998CEF53D");
 
             entity.ToTable("Team");
 
@@ -248,11 +230,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACC93BA0DF");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC9DA4D035");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D105349219EC6D").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D1053456E09D26").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(255);

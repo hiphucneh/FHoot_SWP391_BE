@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Kahoot.Common.BusinessResult;
+using Kahoot.Service.Model.Request;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +10,6 @@ namespace Kahoot.Service.Interface
 {
     public interface ISessionService
     {
+        Task<IBusinessResult> CreateSessionAsync(CreateSessionRequest request);
     }
 }

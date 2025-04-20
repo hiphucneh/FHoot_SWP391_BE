@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Kahoot.Repository.Models;
 
-public partial class QuestionSection
+public partial class QuestionSession
 {
-    public int QuestionSectionId { get; set; }
+    public int QuestionSessionId { get; set; }
 
-    public int SectionId { get; set; }
+    public int SessionId { get; set; }
 
     public int QuestionId { get; set; }
 
@@ -19,5 +19,5 @@ public partial class QuestionSection
 
     public virtual Question Question { get; set; } = null!;
 
-    public virtual Section Section { get; set; } = null!;
+    public virtual Session Session { get; set; } = null!;
 }

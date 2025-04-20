@@ -5,9 +5,9 @@ using System;
 
 namespace Kahoot.Repository.Repositories
 {
-    public class PlayerResponseRepository : GenericRepository<PlayerResponse>, IPlayerResponseRepository
+    public class PlayerAnswerRepository : GenericRepository<PlayerAnswer>, IPlayerAnswerRepository
     {
-        public PlayerResponseRepository(KahootContext context) : base(context)
+        public PlayerAnswerRepository(KahootContext context) : base(context)
         {
         }
     }

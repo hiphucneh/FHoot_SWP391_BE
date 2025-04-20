@@ -10,14 +10,13 @@ namespace Kahoot.Repository
     {
         protected readonly KahootContext _context;
         private IUserRepository _userRepository;
-        private IUserAnswerRepository _userAnswerRepository;
         private ITeamRepository _teamRepository;
-        private ISessionUserRepository _sessionUserRepository;
         private ISessionRepository _sessionRepository;
         private IQuizRepository _quizRepository;
         private IQuestionRepository _questionRepository;
-        private IPlayerResponseRepository _playerResponseRepository;
+        private IPlayerRepository _playerRepository;
         private IAnswerRepository _answerRepository;
+        private IPlayerAnswerRepository _playerAnswerRepository;
 
         public UnitOfWork(KahootContext context)
         {
@@ -26,11 +25,7 @@ namespace Kahoot.Repository
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);
 
-        public IUserAnswerRepository UserAnswerRepository => _userAnswerRepository ??= new UserAnswerRepository(_context);
-
         public ITeamRepository TeamRepository => _teamRepository ??= new TeamRepository(_context);
-
-        public ISessionUserRepository SessionUserRepository => _sessionUserRepository ??= new SessionUserRepository(_context);
 
         public ISessionRepository SessionRepository => _sessionRepository ??= new SessionRepository(_context);
 
@@ -38,9 +33,11 @@ namespace Kahoot.Repository
 
         public IQuestionRepository QuestionRepository => _questionRepository ??= new QuestionRepository(_context);
 
-        public IPlayerResponseRepository PlayerResponseRepository => _playerResponseRepository ??= new PlayerResponseRepository(_context);
+        public IPlayerRepository PlayerRepository => _playerRepository ??= new PlayerRepository(_context);
 
         public IAnswerRepository AnswerRepository => _answerRepository ??= new AnswerRepository(_context);
+
+        public IPlayerAnswerRepository PlayerAnswerRepository => _playerAnswerRepository ??= new PlayerAnswerRepository(_context);
 
         public async Task BeginTransaction()
         {

@@ -25,7 +25,7 @@ public partial class Question
 
     public virtual ICollection<Answer> Answers { get; set; } = new List<Answer>();
 
-    public virtual ICollection<QuestionSection> QuestionSections { get; set; } = new List<QuestionSection>();
+    public virtual ICollection<QuestionSession> QuestionSessions { get; set; } = new List<QuestionSession>();
 
     public virtual Quiz Quiz { get; set; } = null!;
 }
