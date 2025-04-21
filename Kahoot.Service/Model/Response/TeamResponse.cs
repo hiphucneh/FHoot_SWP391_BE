@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Service.Model.Response
 {
-    public class CreateSessionResponse
+    public class TeamResponse
     {
-        public int SessionId { get; set; }
-        public int QuizId { get; set; }
-        public string SessionCode { get; set; }
-        public string SessionName { get; set; }
+        public int TeamId { get; set; }
+        public string TeamName { get; set; } = null!;
+        public int TotalScore { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

@@ -17,7 +17,7 @@ namespace Kahoot.Repository
         private IPlayerRepository _playerRepository;
         private IAnswerRepository _answerRepository;
         private IPlayerAnswerRepository _playerAnswerRepository;
-
+        private IQuestionSessionRepository _questionSessionRepository;
         public UnitOfWork(KahootContext context)
         {
             _context = context;
@@ -38,6 +38,7 @@ namespace Kahoot.Repository
         public IAnswerRepository AnswerRepository => _answerRepository ??= new AnswerRepository(_context);
 
         public IPlayerAnswerRepository PlayerAnswerRepository => _playerAnswerRepository ??= new PlayerAnswerRepository(_context);
+        public IQuestionSessionRepository QuestionSessionRepository => _questionSessionRepository ??= new QuestionSessionRepository(_context);
 
         public async Task BeginTransaction()
         {

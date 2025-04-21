@@ -20,12 +20,11 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kahoot.API v1");
-    // nếu bạn muốn truy cập swagger ngay tại root: 
      c.RoutePrefix = string.Empty;
 });
 app.UseCors("AllowAll");
 
-app.MapHub<Kahoot.API.Hubs.GameHub>("/hubs/game");
+app.MapHub<Kahoot.API.Hubs.GameHub>("/gamehub");
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
