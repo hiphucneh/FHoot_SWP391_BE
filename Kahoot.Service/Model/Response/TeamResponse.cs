@@ -13,5 +13,6 @@ namespace Kahoot.Service.Model.Response
         public int TotalScore { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public List<PlayerResponse> Players { get; set; } = new();
     }
 }

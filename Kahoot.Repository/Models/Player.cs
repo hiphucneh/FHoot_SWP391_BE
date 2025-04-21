@@ -11,6 +11,10 @@ public partial class Player
 
     public int TeamId { get; set; }
 
+    public string Name { get; set; } = null!;
+
+    public string? ImageUrl { get; set; }
+
     public DateTime JoinedAt { get; set; }
 
     public virtual ICollection<PlayerAnswer> PlayerAnswers { get; set; } = new List<PlayerAnswer>();

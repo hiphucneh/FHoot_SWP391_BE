@@ -15,6 +15,8 @@ public partial class PlayerAnswer
 
     public DateTime AnswerTime { get; set; }
 
+    public int AnswerOrder { get; set; }
+
     public bool IsCorrect { get; set; }
 
     public int Score { get; set; }

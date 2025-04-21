@@ -125,17 +125,28 @@ namespace Kahoot.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo Team thành công", response);
         }
 
-        public async Task<IBusinessResult> GetTeams(string SessionCode)
+        // 2. Service implementation
+
+        public async Task<IBusinessResult> GetTeams(string sessionCode)
         {
+            // Include Teams và navigation Players
             var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == SessionCode)
+                .GetByWhere(s => s.SessionCode == sessionCode)
                 .Include(s => s.Teams)
+                    .ThenInclude(t => t.Players)
                 .FirstOrDefaultAsync();
 
-            var teams = session?.Teams;
-            var response = teams.Adapt<TeamResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo Team thành công", response);
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại", null);
+
+            // Lấy danh sách Team entity
+            var teams = session.Teams;
+            var response = teams.Adapt<List<TeamResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy dữ liệu thành công", response);
         }
+
+
         public async Task<IBusinessResult> JoinTeamAsync(int teamid)
         {
             var userIdClaim = GetUserIdClaim();

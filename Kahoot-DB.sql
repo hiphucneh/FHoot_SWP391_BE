@@ -146,6 +146,8 @@ CREATE TABLE Player (
     PlayerID INT        IDENTITY(1,1) PRIMARY KEY,
     UserID   INT        NOT NULL,
     TeamID   INT        NOT NULL,
+	Name       NVARCHAR(100) NOT NULL,
+    ImageURL   NVARCHAR(500) NULL,
     JoinedAt DATETIME   NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Player_User FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
     CONSTRAINT FK_Player_Team FOREIGN KEY (TeamID) REFERENCES Team(TeamID) 
@@ -160,6 +162,7 @@ CREATE TABLE PlayerAnswer (
     QuestionSessionID INT      NOT NULL,
     AnswerID          INT      NOT NULL,
     AnswerTime        DATETIME NOT NULL DEFAULT GETDATE(),
+	AnswerOrder      INT        NOT NULL DEFAULT 0,
     IsCorrect         BIT      NOT NULL DEFAULT 0,
     Score             INT      NOT NULL DEFAULT 0,
     CONSTRAINT FK_PA_Player          FOREIGN KEY (PlayerID)          REFERENCES Player(PlayerID)              ON DELETE CASCADE,
