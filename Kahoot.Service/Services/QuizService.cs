@@ -126,13 +126,10 @@ namespace Kahoot.Service.Services
         }
         public async Task<IBusinessResult> AddQuestionsToQuiz(int quizId, List<QuestionRequest> questionRequests)
         {
-            // 1) Lấy userId
             var userIdClaim = GetUserIdClaim();
             if (string.IsNullOrEmpty(userIdClaim))
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
             var userId = int.Parse(userIdClaim);
-
-            // 2) Load quiz kèm navigation Questions→Answers
             var quiz = await _unitOfWork.QuizRepository
                 .GetByWhere(q => q.QuizId == quizId && q.CreatedBy == userId)
                 .Include(q => q.Questions)
@@ -142,7 +139,6 @@ namespace Kahoot.Service.Services
             if (quiz == null)
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Quiz not found");
 
-            // 3) Xác định SortOrder bắt đầu
             var nextOrder = quiz.Questions.Any()
                 ? quiz.Questions.Max(q => q.SortOrder) + 1
                 : 1;
@@ -176,6 +172,59 @@ namespace Kahoot.Service.Services
 
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_OK, "Questions added successfully");
+        }
+        public async Task<IBusinessResult> SortOrderAsync(int quizId, int questionId, int newSortOrder)
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+            var userId = int.Parse(userIdClaim);
+
+            var quiz = await _unitOfWork.QuizRepository
+                .GetByWhere(q => q.QuizId == quizId && q.CreatedBy == userId)
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync();
+
+            if (quiz == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Quiz not found");
+
+            var questions = quiz.Questions.OrderBy(q => q.SortOrder).ToList();
+            var total = questions.Count;
+
+            var target = questions.FirstOrDefault(q => q.QuestionId == questionId);
+            if (target == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Question not found in this quiz");
+
+            if (newSortOrder < 1 || newSortOrder > total)
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"newSortOrder phải nằm trong khoảng 1 đến {total}");
+
+            var oldOrder = target.SortOrder;
+            if (newSortOrder == oldOrder)
+                return new BusinessResult(Const.HTTP_STATUS_OK, "No change needed");
+
+            if (newSortOrder > oldOrder)
+            {
+                foreach (var q in questions)
+                {
+                    if (q.SortOrder > oldOrder && q.SortOrder <= newSortOrder)
+                        q.SortOrder--;
+                }
+            }
+            else
+            {
+                foreach (var q in questions)
+                {
+                    if (q.SortOrder >= newSortOrder && q.SortOrder < oldOrder)
+                        q.SortOrder++;
+                }
+            }
+
+            target.SortOrder = newSortOrder;
+            quiz.UpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.QuizRepository.UpdateAsync(quiz);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "SortOrder updated successfully");
         }
 
         public async Task<IBusinessResult> UpdateQuestionsForQuiz(int quizId, List<QuestionRequest> questionRequests)

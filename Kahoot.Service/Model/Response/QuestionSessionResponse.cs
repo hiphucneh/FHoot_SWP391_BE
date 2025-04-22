@@ -15,6 +15,6 @@ namespace Kahoot.Service.Model.Response
         public int SortOrder { get; set; }
         public int TimeLimitSec { get; set; }
         public DateTime RunAt { get; set; }
-        public List<AnswerResponse> Answers { get; set; } = new();
+        public QuestionResponse Question { get; set; } = null!;
     }
 }

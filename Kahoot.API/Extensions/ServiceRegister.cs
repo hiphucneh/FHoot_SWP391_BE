@@ -82,7 +82,7 @@ namespace Kahoot.API.Extensions
                         // Nếu request đi vào hub path và có access_token
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/hubs/game")))
+                            (path.StartsWithSegments("/gamehubs")))
                         {
                             context.Token = accessToken;
                         }

@@ -17,7 +17,7 @@ public partial class Session
 
     public DateTime? EndAt { get; set; }
 
-    public bool EndedManually { get; set; }
+    public bool EndedManually { get; set; } 
 
     public virtual ICollection<QuestionSession> QuestionSessions { get; set; } = new List<QuestionSession>();
 

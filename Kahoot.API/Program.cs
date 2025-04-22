@@ -24,7 +24,7 @@ app.UseSwaggerUI(c =>
 });
 app.UseCors("AllowAll");
 
-app.MapHub<Kahoot.API.Hubs.GameHub>("/gamehub");
+app.MapHub<Kahoot.API.Hubs.GameHub>("/gamehubs");
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();

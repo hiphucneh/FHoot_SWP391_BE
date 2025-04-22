@@ -20,5 +20,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> UpdateQuestionsForQuiz(int quizId, List<QuestionRequest> questionRequests);
         Task<IBusinessResult> DeleteQuestion(int questionId);
         Task<IBusinessResult> AddImageToQuestion(int questionId, ImageUpload request);
+        Task<IBusinessResult> SortOrderAsync(int quizId, int questionId, int newSortOrder);
     }
 }

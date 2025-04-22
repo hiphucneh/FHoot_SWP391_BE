@@ -13,15 +13,14 @@ using Kahoot.Service.Model.Response;
 using System.Security.Claims;
 using Kahoot.Service.ModelDTOs.Response;
 using Mapster;
+using Kahoot.Service.Utilities;
 
 namespace Kahoot.Service.Services
 {
-    // SessionService chỉ chứa logic nghiệp vụ, không phụ thuộc vào SignalR/Hub
     public class SessionService : ISessionService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
         public SessionService(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor)
@@ -29,13 +28,11 @@ namespace Kahoot.Service.Services
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
         }
-
         private string GetUserIdClaim()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
-
         public async Task<IBusinessResult> CreateSessionAsync(CreateSessionRequest request)
         {
             var userIdClaim = GetUserIdClaim();
@@ -81,115 +78,22 @@ namespace Kahoot.Service.Services
             return new string(Enumerable.Range(0, length)
                 .Select(_ => chars[random.Next(chars.Length)]).ToArray());
         }
-        public async Task<IBusinessResult> CreateTeamAsync(TeamRequest request)
-        {
-            var userIdClaim = GetUserIdClaim();
-            if (string.IsNullOrEmpty(userIdClaim))
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
-            }
-            var userid = int.Parse(userIdClaim);
-            var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == request.SessionCode)
-                .Include(s => s.Teams)
-                .FirstOrDefaultAsync();
-
-            if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
-            bool duplicate = session.Teams.Any(t => t.TeamName.Equals(request.TeamName, StringComparison.OrdinalIgnoreCase));
-            if (duplicate)
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Tên Team đã tồn tại trong phiên chơi");
-
-            var now = DateTime.UtcNow;
-            var team = new Team
-            {
-                SessionId = session.SessionId,
-                TeamName = request.TeamName,
-                TotalScore = 0,
-                CreatedAt = now,
-                UpdatedAt = now
-            };
-
-            await _unitOfWork.TeamRepository.AddAsync(team);
-            await _unitOfWork.SaveChangesAsync();
-
-            var response = new TeamResponse
-            {
-                TeamId = team.TeamId,
-                TeamName = team.TeamName,
-                TotalScore = team.TotalScore,
-                CreatedAt = team.CreatedAt,
-                UpdatedAt = team.UpdatedAt
-            };
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo Team thành công", response);
-        }
-
-        // 2. Service implementation
-
-        public async Task<IBusinessResult> GetTeams(string sessionCode)
-        {
-            // Include Teams và navigation Players
-            var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == sessionCode)
-                .Include(s => s.Teams)
-                    .ThenInclude(t => t.Players)
-                .FirstOrDefaultAsync();
-
-            if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại", null);
-
-            // Lấy danh sách Team entity
-            var teams = session.Teams;
-            var response = teams.Adapt<List<TeamResponse>>();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy dữ liệu thành công", response);
-        }
-
-
-        public async Task<IBusinessResult> JoinTeamAsync(int teamid)
+        public async Task<IBusinessResult> StartSessionAsync(string sessionCode)
         {
             var userIdClaim = GetUserIdClaim();
             if (string.IsNullOrEmpty(userIdClaim))
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
             var userId = int.Parse(userIdClaim);
-            var team = await _unitOfWork.TeamRepository
-                .GetByWhere(t => t.TeamId == teamid)
-                .Include(t => t.Players)
-                .FirstOrDefaultAsync();
-
-            if (team == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Team không tồn tại");
-            if (team.Players.Any(p => p.UserId == userId))
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã tham gia Team này");
-            var now = DateTime.UtcNow;
-            var player = new Player
-            {
-                TeamId = teamid,
-                UserId = userId,
-                JoinedAt = now
-            };
-
-            await _unitOfWork.PlayerRepository.AddAsync(player);
-            await _unitOfWork.SaveChangesAsync();
-            var response = new PlayerResponse
-            {
-                PlayerId = player.PlayerId,
-                TeamId = player.TeamId,
-                JoinedAt = player.JoinedAt
-            };
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Gia nhập Team thành công", response);
-        }
-        public async Task<IBusinessResult> StartSessionAsync(string SessionCode)
-        {
             var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == SessionCode)
+                .GetByWhere(s => s.SessionCode == sessionCode)
+                .Include(s => s.Quiz)
+                .Include(s => s.QuestionSessions)
                 .FirstOrDefaultAsync();
 
             if (session == null)
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
-
+            if (session.Quiz.CreatedBy != userId)
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn không có quyền bắt đầu phiên chơi này");
             var questions = await _unitOfWork.QuestionRepository
                 .GetByWhere(q => q.QuizId == session.QuizId)
                 .Include(q => q.Answers)
@@ -199,13 +103,146 @@ namespace Kahoot.Service.Services
             if (!questions.Any())
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Quiz chưa có câu hỏi nào");
 
+            if (session.QuestionSessions.Any())
+            {
+                var existing = await _unitOfWork.QuestionSessionRepository
+                    .GetByWhere(qs => qs.SessionId == session.SessionId)
+                    .Include(qs => qs.Question)
+                        .ThenInclude(q => q.Answers)
+                    .OrderBy(qs => qs.SortOrder)
+                    .ToListAsync();
+
+                var existingDto = existing.Select(qs => new QuestionSessionResponse
+                {
+                    QuestionSessionId = qs.QuestionSessionId,
+                    Question = qs.Question.Adapt<QuestionResponse>(),
+                    SortOrder = qs.SortOrder,
+                    RunAt = qs.RunAt
+                }).ToList();
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Phiên chơi đã được khởi tạo trước đó", existingDto);
+            }
+
+            var now = DateTime.UtcNow;
+            int cumulativeOffset = 0;
+            var qsEntities = new List<QuestionSession>();
+
+            foreach (var q in questions)
+            {
+                qsEntities.Add(new QuestionSession
+                {
+                    SessionId = session.SessionId,
+                    QuestionId = q.QuestionId,
+                    SortOrder = q.SortOrder,
+                    RunAt = now.AddSeconds(cumulativeOffset)
+                });
+                cumulativeOffset += q.TimeLimitSec;
+            }
+
+            await _unitOfWork.QuestionSessionRepository.AddRangeAsync(qsEntities);
+            await _unitOfWork.SaveChangesAsync();
+
+            var created = await _unitOfWork.QuestionSessionRepository
+                .GetByWhere(qs => qs.SessionId == session.SessionId)
+                .Include(qs => qs.Question)
+                    .ThenInclude(q => q.Answers)
+                .OrderBy(qs => qs.SortOrder)
+                .ToListAsync();
+
+            var response = created.Select(qs => new QuestionSessionResponse
+            {
+                QuestionSessionId = qs.QuestionSessionId,
+                Question = qs.Question.Adapt<QuestionResponse>(),
+                SortOrder = qs.SortOrder,
+                RunAt = qs.RunAt
+            }).ToList();
 
             return new BusinessResult(
                 Const.HTTP_STATUS_OK,
                 "Phiên chơi bắt đầu thành công",
-                questions
+                response
             );
         }
+        public async Task<IBusinessResult> GetMySessionsAsync()
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+            var userId = int.Parse(userIdClaim);
 
+            var sessions = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.Quiz.CreatedBy == userId)
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync();
+
+            var response = sessions.Adapt<List<SessionResponse>>();
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Lấy danh sách phiên chơi thành công",
+                response
+            );
+        }
+        public async Task<IBusinessResult> EndSessionAsync(string sessionCode)
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+            var userId = int.Parse(userIdClaim);
+            var session = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.SessionCode == sessionCode)
+                .Include(s => s.Quiz)
+                .FirstOrDefaultAsync();
+
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+
+            if (session.Quiz.CreatedBy != userId)
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn không có quyền kết thúc phiên chơi này");
+
+            if (session.EndedManually)
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Phiên chơi đã được kết thúc trước đó");
+            session.EndedManually = true;
+            session.EndAt = DateTime.UtcNow;
+            session.SessionCode = "";
+            await _unitOfWork.SessionRepository.UpdateAsync(session);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Kết thúc phiên chơi thành công");
+        }
+        public async Task<IBusinessResult> GetSessionTeamLeaderboardAsync(string sessionCode)
+        {
+            var session = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.SessionCode == sessionCode)
+                .FirstOrDefaultAsync();
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+            var teams = await _unitOfWork.TeamRepository
+                .GetByWhere(t => t.SessionId == session.SessionId)
+                .Include(t => t.Players)
+                    .ThenInclude(p => p.PlayerAnswers)
+                .ToListAsync();
+
+            var leaderboard = teams
+                .Select(t => new
+                {
+                    t.TeamId,
+                    t.TeamName,
+                    TotalScore = t.Players.SelectMany(p => p.PlayerAnswers).Sum(pa => pa.Score)
+                })
+                .OrderByDescending(x => x.TotalScore)
+                .Select((x, idx) => new TeamLeaderboardItem
+                {
+                    TeamId = x.TeamId,
+                    TeamName = x.TeamName,
+                    TotalScore = x.TotalScore,
+                    Rank = idx + 1
+                })
+                .ToList();
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Lấy bảng xếp hạng Team thành công",
+                leaderboard
+            );
+        }
     }
 }

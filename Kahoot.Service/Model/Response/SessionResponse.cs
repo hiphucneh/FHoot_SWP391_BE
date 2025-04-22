@@ -13,5 +13,6 @@ namespace Kahoot.Service.Model.Response
         public string SessionCode { get; set; }
         public string SessionName { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? EndAt { get; set; }
     }
 }

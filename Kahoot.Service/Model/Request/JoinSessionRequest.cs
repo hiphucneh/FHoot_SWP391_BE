@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,21 +7,10 @@ using System.Threading.Tasks;
 
 namespace Kahoot.Service.Model.Request
 {
-    public class JoinSessionRequest
+    public class JoinTeamRequest
     {
-        /// <summary>
-        /// Mã code của phiên chơi do host cấp
-        /// </summary>
-        public string SessionCode { get; set; }
-
-        /// <summary>
-        /// ID của người chơi
-        /// </summary>
-        public int UserId { get; set; }
-
-        /// <summary>
-        /// Tên đầy đủ của người chơi
-        /// </summary>
+        public int teamId { get; set; }
         public string FullName { get; set; }
+        public IFormFile? ImageUrl { get; set; }
     }
 }
