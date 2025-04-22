@@ -10,7 +10,6 @@ namespace Kahoot.Service.Interface
 {
     public interface IPlayerService
     {
-        Task<IBusinessResult> GetMySessionScoreAsync(string sessionCode);
         Task<IBusinessResult> AnswerQuestionAsync(AnswerQuestionRequest request);
     }
 }

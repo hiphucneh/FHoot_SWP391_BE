@@ -144,6 +144,8 @@ namespace Kahoot.Service.Services
             {
                 PlayerId = newPlayer.PlayerId,
                 Name = newPlayer.Name,
+                TeamName = team.TeamName,
+                ImageUrl = newPlayer.ImageUrl,
                 Score = 0,
                 JoinedAt = newPlayer.JoinedAt
             };

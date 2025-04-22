@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Kahoot.Service.Model.Response;
 
 namespace Kahoot.Service.Services
 {
@@ -20,12 +21,6 @@ namespace Kahoot.Service.Services
         public int AnswerId { get; set; }
     }
 
-    public class AnswerQuestionResponse
-    {
-        public bool IsCorrect { get; set; }
-        public int Score { get; set; }
-        public int AnswerOrder { get; set; }
-    }
 
     public class PlayerService : IPlayerService
     {
@@ -75,7 +70,6 @@ namespace Kahoot.Service.Services
                 .FirstOrDefaultAsync();
             if (answer == null)
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Answer không hợp lệ");
-
             bool isCorrect = answer.IsCorrect;
 
             int existingCount = await _unitOfWork.PlayerAnswerRepository
@@ -88,11 +82,8 @@ namespace Kahoot.Service.Services
                 .CountAsync();
             int score = 0;
             if (isCorrect)
-            {
                 score = (int)Math.Ceiling(1000.0 * (totalPlayers - answerOrder + 1) / totalPlayers);
-            }
 
-            // 9) Tạo và lưu PlayerAnswer
             var pa = new PlayerAnswer
             {
                 PlayerId = player.PlayerId,
@@ -106,53 +97,23 @@ namespace Kahoot.Service.Services
             await _unitOfWork.PlayerAnswerRepository.AddAsync(pa);
             await _unitOfWork.SaveChangesAsync();
 
-            // 10) Trả về kết quả
-            var response = new AnswerQuestionResponse
+            var totalScore = await _unitOfWork.PlayerAnswerRepository
+                .GetByWhere(x => x.PlayerId == player.PlayerId && x.QuestionSession.SessionId == qs.SessionId)
+                .SumAsync(x => x.Score);
+
+            var response = new AnswerTotalScoreResponse
             {
                 IsCorrect = isCorrect,
                 Score = score,
-                AnswerOrder = answerOrder
-            };
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Trả lời thành công", response);
-        }
-        public async Task<IBusinessResult> GetMySessionScoreAsync(string sessionCode)
-        {
-            // 1) Xác thực user
-            var userIdClaim = GetUserIdClaim();
-            if (string.IsNullOrEmpty(userIdClaim))
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
-            var userId = int.Parse(userIdClaim);
-
-            // 2) Lấy session để xác định sessionId
-            var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == sessionCode)
-                .FirstOrDefaultAsync();
-            if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
-
-            // 3) Lấy player tương ứng trong session
-            var player = await _unitOfWork.PlayerRepository
-                .GetByWhere(p => p.UserId == userId && p.Team.SessionId == session.SessionId)
-                .FirstOrDefaultAsync();
-            if (player == null)
-                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn chưa tham gia phiên chơi này");
-
-            // 4) Tính tổng điểm từ bảng PlayerAnswer
-            var totalScore = await _unitOfWork.PlayerAnswerRepository
-                .GetByWhere(pa => pa.PlayerId == player.PlayerId && pa.QuestionSession.SessionId == session.SessionId)
-                .SumAsync(pa => pa.Score);
-
-            // 5) Trả về kết quả
-            var response = new
-            {
-                PlayerId = player.PlayerId,
-                SessionId = session.SessionId,
+                AnswerOrder = answerOrder,
                 TotalScore = totalScore
             };
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy tổng điểm thành công", response);
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Trả lời thành công",
+                response
+            );
         }
-
     }
 
 }

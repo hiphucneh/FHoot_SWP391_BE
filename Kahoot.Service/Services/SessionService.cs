@@ -78,18 +78,19 @@ namespace Kahoot.Service.Services
             return new string(Enumerable.Range(0, length)
                 .Select(_ => chars[random.Next(chars.Length)]).ToArray());
         }
+
+
         public async Task<IBusinessResult> StartSessionAsync(string sessionCode)
         {
             var userIdClaim = GetUserIdClaim();
             if (string.IsNullOrEmpty(userIdClaim))
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
             var userId = int.Parse(userIdClaim);
+
             var session = await _unitOfWork.SessionRepository
                 .GetByWhere(s => s.SessionCode == sessionCode)
                 .Include(s => s.Quiz)
-                .Include(s => s.QuestionSessions)
                 .FirstOrDefaultAsync();
-
             if (session == null)
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
             if (session.Quiz.CreatedBy != userId)
@@ -99,62 +100,16 @@ namespace Kahoot.Service.Services
                 .Include(q => q.Answers)
                 .OrderBy(q => q.SortOrder)
                 .ToListAsync();
-
             if (!questions.Any())
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Quiz chưa có câu hỏi nào");
-
-            if (session.QuestionSessions.Any())
-            {
-                var existing = await _unitOfWork.QuestionSessionRepository
-                    .GetByWhere(qs => qs.SessionId == session.SessionId)
-                    .Include(qs => qs.Question)
-                        .ThenInclude(q => q.Answers)
-                    .OrderBy(qs => qs.SortOrder)
-                    .ToListAsync();
-
-                var existingDto = existing.Select(qs => new QuestionSessionResponse
-                {
-                    QuestionSessionId = qs.QuestionSessionId,
-                    Question = qs.Question.Adapt<QuestionResponse>(),
-                    SortOrder = qs.SortOrder,
-                    RunAt = qs.RunAt
-                }).ToList();
-
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Phiên chơi đã được khởi tạo trước đó", existingDto);
-            }
-
             var now = DateTime.UtcNow;
-            int cumulativeOffset = 0;
-            var qsEntities = new List<QuestionSession>();
-
-            foreach (var q in questions)
+            var response = questions.Select(q => new QuestionSessionResponse
             {
-                qsEntities.Add(new QuestionSession
-                {
-                    SessionId = session.SessionId,
-                    QuestionId = q.QuestionId,
-                    SortOrder = q.SortOrder,
-                    RunAt = now.AddSeconds(cumulativeOffset)
-                });
-                cumulativeOffset += q.TimeLimitSec;
-            }
-
-            await _unitOfWork.QuestionSessionRepository.AddRangeAsync(qsEntities);
-            await _unitOfWork.SaveChangesAsync();
-
-            var created = await _unitOfWork.QuestionSessionRepository
-                .GetByWhere(qs => qs.SessionId == session.SessionId)
-                .Include(qs => qs.Question)
-                    .ThenInclude(q => q.Answers)
-                .OrderBy(qs => qs.SortOrder)
-                .ToListAsync();
-
-            var response = created.Select(qs => new QuestionSessionResponse
-            {
-                QuestionSessionId = qs.QuestionSessionId,
-                Question = qs.Question.Adapt<QuestionResponse>(),
-                SortOrder = qs.SortOrder,
-                RunAt = qs.RunAt
+                QuestionSessionId = 0,               
+                Question = q.Adapt<QuestionResponse>(),
+                SortOrder = q.SortOrder,
+                TimeLimitSec = q.TimeLimitSec,
+                RunAt = now
             }).ToList();
 
             return new BusinessResult(
@@ -162,6 +117,50 @@ namespace Kahoot.Service.Services
                 "Phiên chơi bắt đầu thành công",
                 response
             );
+        }
+        public async Task<IBusinessResult> NextQuestionAsync(string sessionCode, int sortOrder)
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập");
+
+            var userId = int.Parse(userIdClaim);
+            var session = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.SessionCode == sessionCode)
+                .Include(s => s.Quiz)
+                .FirstOrDefaultAsync();
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+            if (session.Quiz.CreatedBy != userId)
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn không có quyền");
+
+            var question = await _unitOfWork.QuestionRepository
+                .GetByWhere(q => q.QuizId == session.QuizId && q.SortOrder == sortOrder)
+                .Include(q => q.Answers)
+                .FirstOrDefaultAsync();
+            if (question == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"Không tìm thấy câu hỏi thứ {sortOrder}");
+
+            var now = DateTime.UtcNow;
+            var qs = new QuestionSession
+            {
+                SessionId = session.SessionId,
+                QuestionId = question.QuestionId,
+                SortOrder = sortOrder,
+                RunAt = now
+            };
+            await _unitOfWork.QuestionSessionRepository.AddAsync(qs);
+            await _unitOfWork.SaveChangesAsync();
+
+            var dto = new QuestionSessionResponse
+            {
+                QuestionSessionId = qs.QuestionSessionId,
+                SortOrder = sortOrder,
+                RunAt = now,
+                Question = question.Adapt<QuestionResponse>()
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo phiên hỏi kế tiếp thành công", dto);
         }
         public async Task<IBusinessResult> GetMySessionsAsync()
         {

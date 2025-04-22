@@ -229,7 +229,6 @@ namespace Kahoot.Service.Services
 
         public async Task<IBusinessResult> UpdateQuestionsForQuiz(int quizId, List<QuestionRequest> questionRequests)
         {
-            // 1) Lấy userId và quiz như trước
             var userIdClaim = GetUserIdClaim();
             if (string.IsNullOrEmpty(userIdClaim))
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");

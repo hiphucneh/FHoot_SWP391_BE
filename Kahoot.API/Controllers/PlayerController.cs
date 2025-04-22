@@ -24,12 +24,5 @@ namespace Kahoot.API.Controllers
             IBusinessResult result = await _playerService.AnswerQuestionAsync(request);
             return StatusCode(result.StatusCode, result);
         }
-
-        [HttpGet("session/{sessionCode}/score")]
-        public async Task<IActionResult> GetSessionScore([FromRoute] string sessionCode)
-        {
-            IBusinessResult result = await _playerService.GetMySessionScoreAsync(sessionCode);
-            return StatusCode(result.StatusCode, result);
-        }
     }
 }

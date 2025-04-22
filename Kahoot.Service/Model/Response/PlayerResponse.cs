@@ -10,6 +10,7 @@ namespace Kahoot.Service.Model.Response
     {
         public int PlayerId { get; set; }
         public int TeamId { get; set; }
+        public string TeamName { get; set; }
         public string Name { get; set; } = null!;
         public string? ImageUrl { get; set; }
         public int Score { get; set; }

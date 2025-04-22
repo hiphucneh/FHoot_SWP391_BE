@@ -9,5 +9,7 @@ namespace Kahoot.API.Hubs
         Task PlayerJoined(PlayerResponse player);
         Task SessionStarted();
         Task SessionEnded();
+        Task ShowQuestion(QuestionSessionResponse question);
+
     }
 }

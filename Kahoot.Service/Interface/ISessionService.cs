@@ -15,5 +15,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> EndSessionAsync(string sessionCode);
         Task<IBusinessResult> GetMySessionsAsync();
         Task<IBusinessResult> GetSessionTeamLeaderboardAsync(string sessionCode);
+        Task<IBusinessResult> NextQuestionAsync(string sessionCode, int sortOrder);
     }
 }

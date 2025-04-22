@@ -88,5 +88,15 @@ namespace Kahoot.API.Controllers
             var result = await _quizService.DeleteQuestion(questionId);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpPut("{id}/questions/{questionId}/sortorder")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        public async Task<IActionResult> SortQuestion(
+            [FromRoute] int id,
+            [FromRoute] int questionId,
+            [FromBody] int sortOrder)
+        {
+            var result = await _quizService.SortOrderAsync(id, questionId, sortOrder);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
