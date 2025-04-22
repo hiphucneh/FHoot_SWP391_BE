@@ -203,7 +203,6 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Phiên chơi đã được kết thúc trước đó");
             session.EndedManually = true;
             session.EndAt = DateTime.UtcNow;
-            session.SessionCode = "";
             await _unitOfWork.SessionRepository.UpdateAsync(session);
             await _unitOfWork.SaveChangesAsync();
 
