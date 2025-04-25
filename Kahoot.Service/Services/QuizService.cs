@@ -11,6 +11,11 @@ using System.Security.Claims;
 using Kahoot.Service.ModelDTOs.Request;
 using Kahoot.Service.ModelDTOs.Response;
 using Mapster;
+using System.Globalization;
+using Kahoot.Service.Model.Request;
+using CsvHelper;
+using CsvHelper.Configuration;
+using ClosedXML.Excel;
 
 namespace Kahoot.Service.Services
 {
@@ -336,7 +341,97 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Question deleted successfully");
         }
+        public async Task<IBusinessResult> ImportQuestionsFromFile(int quizId, IFormFile file)
+        {
+            // --- 1) Kiểm tra đăng nhập & quyền ---
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+            var userId = int.Parse(userIdClaim);
 
+            var quiz = await _unitOfWork.QuizRepository
+                .GetByWhere(q => q.QuizId == quizId && q.CreatedBy == userId)
+                .Include(q => q.Questions).ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync();
+            if (quiz == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Quiz không tồn tại hoặc không phải của bạn");
 
+            // --- 2) Đọc file vào List<CsvQuestionDto> ---
+            List<CsvQuestionDto> records;
+            var ext = Path.GetExtension(file.FileName).ToLower();
+
+            if (ext == ".csv")
+            {
+                // a) Cấu hình CsvHelper để bỏ qua bad data, missing field...
+                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    HasHeaderRecord = true,
+                    IgnoreBlankLines = true,
+                    Delimiter = ",",
+                    BadDataFound = null,
+                    MissingFieldFound = null,
+                    HeaderValidated = null
+                };
+
+                using var reader = new StreamReader(file.OpenReadStream());
+                using var csv = new CsvReader(reader, config);
+                records = csv.GetRecords<CsvQuestionDto>().ToList();
+            }
+            else if (ext == ".xlsx" || ext == ".xls")
+            {
+                // b) Dùng ClosedXML đọc Excel
+                using var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                using var workbook = new XLWorkbook(ms);
+                var sheet = workbook.Worksheets.First();
+                // Giả sử header nằm ở dòng 1, dữ liệu bắt đầu từ dòng 2
+                records = sheet.RowsUsed()
+                               .Skip(1)
+                               .Select(r => new CsvQuestionDto
+                               {
+                                   QuestionText = r.Cell(1).GetString().Trim(),
+                                   Answer1 = r.Cell(2).GetString().Trim(),
+                                   Answer2 = r.Cell(3).GetString().Trim(),
+                                   Answer3 = r.Cell(4).GetString().Trim(),
+                                   Answer4 = r.Cell(5).GetString().Trim(),
+                                   TimeLimitSec = r.Cell(6).GetValue<int>(),
+                                   CorrectAnswers = r.Cell(7).GetString().Trim()
+                               })
+                               .ToList();
+            }
+            else
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Chỉ hỗ trợ file .csv, .xlsx hoặc .xls");
+            }
+
+            // --- 3) Map sang QuestionRequest và AnswerRequest ---
+            var questionRequests = new List<QuestionRequest>();
+            foreach (var dto in records)
+            {
+                var corrects = dto.GetCorrectIndexes().ToHashSet();
+                var answers = new List<AnswerRequest>();
+
+                if (!string.IsNullOrWhiteSpace(dto.Answer1))
+                    answers.Add(new AnswerRequest { AnswerText = dto.Answer1, IsCorrect = corrects.Contains(1) });
+                if (!string.IsNullOrWhiteSpace(dto.Answer2))
+                    answers.Add(new AnswerRequest { AnswerText = dto.Answer2, IsCorrect = corrects.Contains(2) });
+                if (!string.IsNullOrWhiteSpace(dto.Answer3))
+                    answers.Add(new AnswerRequest { AnswerText = dto.Answer3, IsCorrect = corrects.Contains(3) });
+                if (!string.IsNullOrWhiteSpace(dto.Answer4))
+                    answers.Add(new AnswerRequest { AnswerText = dto.Answer4, IsCorrect = corrects.Contains(4) });
+
+                questionRequests.Add(new QuestionRequest
+                {
+                    QuestionText = dto.QuestionText,
+                    TimeLimitSec = dto.TimeLimitSec,
+                    IsRandomAnswer = false,
+                    Answers = answers
+                });
+            }
+
+            // --- 4) Tái sử dụng logic thêm câu hỏi có sẵn ---
+            var result = await AddQuestionsToQuiz(quizId, questionRequests);
+            return result;
+        }
     }
 }

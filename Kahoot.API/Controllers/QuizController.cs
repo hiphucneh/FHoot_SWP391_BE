@@ -98,5 +98,13 @@ namespace Kahoot.API.Controllers
             var result = await _quizService.SortOrderAsync(id, questionId, sortOrder);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpPost("{quizId}/import")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        public async Task<IActionResult> Import(int quizId, IFormFile file)
+        {
+            var result = await _quizService.ImportQuestionsFromFile(quizId, file);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }

@@ -27,7 +27,6 @@ EXEC sp_executesql @sql;
 GO
 
 -- ================================================
--- File: DatabaseForKahootGame.sql
 -- Mô tả: Định nghĩa các bảng cho ứng dụng game Kahoot
 -- Yêu cầu: Người dùng phải đăng nhập mới được chơi game.
 -- ================================================
@@ -56,7 +55,7 @@ CREATE TABLE [User] (
     RefreshToken           NVARCHAR(MAX) NULL,
     RefreshTokenExpiryTime DATETIME      NULL,
     CONSTRAINT FK_User_Role FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
-);
+	);
 
 -- ============================
 -- 3. Bảng Quiz
@@ -108,7 +107,7 @@ CREATE TABLE [Session] (
     SessionID   INT        IDENTITY(1,1) PRIMARY KEY,
     QuizID      INT        NOT NULL,
     SessionName NVARCHAR(255) NOT NULL,
-    SessionCode NVARCHAR(20)  NOT NULL UNIQUE,
+    SessionCode NVARCHAR(20)  NULL UNIQUE,
     CreatedAt   DATETIME   NOT NULL DEFAULT GETDATE(),
     EndAt       DATETIME   NULL,
     EndedManually BIT      NOT NULL DEFAULT 0,

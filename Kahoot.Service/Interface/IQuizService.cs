@@ -1,6 +1,7 @@
 ﻿using Kahoot.Common.BusinessResult;
 using Kahoot.Repository.Models;
 using Kahoot.Service.ModelDTOs.Request;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,5 +22,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> DeleteQuestion(int questionId);
         Task<IBusinessResult> AddImageToQuestion(int questionId, ImageUpload request);
         Task<IBusinessResult> SortOrderAsync(int quizId, int questionId, int newSortOrder);
+        Task<IBusinessResult> ImportQuestionsFromFile(int quizId, IFormFile file);
     }
 }
