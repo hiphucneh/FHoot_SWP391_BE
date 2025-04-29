@@ -14,6 +14,7 @@ using System.Security.Claims;
 using Kahoot.Service.ModelDTOs.Response;
 using Mapster;
 using Kahoot.Service.Utilities;
+using System.Linq.Expressions;
 
 namespace Kahoot.Service.Services
 {
@@ -41,7 +42,6 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
             }
             var userid = int.Parse(userIdClaim);
-
             var quiz = await _unitOfWork.QuizRepository
                 .GetByWhere(q => q.QuizId == request.QuizId && q.CreatedBy == userid)
                 .FirstOrDefaultAsync();
@@ -79,7 +79,6 @@ namespace Kahoot.Service.Services
                 .Select(_ => chars[random.Next(chars.Length)]).ToArray());
         }
 
-
         public async Task<IBusinessResult> StartSessionAsync(string sessionCode)
         {
             var userIdClaim = GetUserIdClaim();
@@ -88,11 +87,11 @@ namespace Kahoot.Service.Services
             var userId = int.Parse(userIdClaim);
 
             var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == sessionCode)
+                .GetByWhere(s => s.SessionCode == sessionCode && s.EndAt == null)
                 .Include(s => s.Quiz)
                 .FirstOrDefaultAsync();
             if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại hoặc đã kết thúc");
             if (session.Quiz.CreatedBy != userId)
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn không có quyền bắt đầu phiên chơi này");
             var questions = await _unitOfWork.QuestionRepository
@@ -126,7 +125,7 @@ namespace Kahoot.Service.Services
 
             var userId = int.Parse(userIdClaim);
             var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == sessionCode)
+                .GetByWhere(s => s.SessionCode == sessionCode && s.EndAt == null)
                 .Include(s => s.Quiz)
                 .FirstOrDefaultAsync();
             if (session == null)
@@ -214,6 +213,7 @@ namespace Kahoot.Service.Services
                 .FirstOrDefaultAsync();
             if (session == null)
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+
             var teams = await _unitOfWork.TeamRepository
                 .GetByWhere(t => t.SessionId == session.SessionId)
                 .Include(t => t.Players)
@@ -225,6 +225,12 @@ namespace Kahoot.Service.Services
                 {
                     t.TeamId,
                     t.TeamName,
+                    Players = t.Players.Select(p => new
+                    {
+                        p.PlayerId,
+                        p.Name,
+                        TotalScore = p.PlayerAnswers.Sum(pa => pa.Score)
+                    }).ToList(),
                     TotalScore = t.Players.SelectMany(p => p.PlayerAnswers).Sum(pa => pa.Score)
                 })
                 .OrderByDescending(x => x.TotalScore)
@@ -233,14 +239,59 @@ namespace Kahoot.Service.Services
                     TeamId = x.TeamId,
                     TeamName = x.TeamName,
                     TotalScore = x.TotalScore,
-                    Rank = idx + 1
+                    Rank = idx + 1,
+                    Players = x.Players.Select(p => new PlayerLeaderboardItem
+                    {
+                        PlayerId = p.PlayerId,
+                        Name = p.Name,
+                        TotalScore = p.TotalScore
+                    }).ToList()
                 })
                 .ToList();
+
             return new BusinessResult(
                 Const.HTTP_STATUS_OK,
                 "Lấy bảng xếp hạng Team thành công",
                 leaderboard
             );
         }
+
+        public async Task<IBusinessResult> GetAllSessionsAsync(int pageNumber = 1, int pageSize = 10, string? search = null)
+        {
+            Expression<Func<Session, bool>> predicate = s => true;
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim().ToLower();
+                predicate = s =>
+                    s.SessionName.ToLower().Contains(search) ||
+                    s.SessionCode.ToLower().Contains(search);
+            }
+
+            var sessions = await _unitOfWork.SessionRepository.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate: predicate,
+                orderBy: q => q.OrderByDescending(s => s.CreatedAt),
+                include: q => q.Include(s => s.Quiz)
+            );
+
+            var response = sessions.Select(s => new SessionResponse
+            {
+                SessionId = s.SessionId,
+                SessionName = s.SessionName,
+                SessionCode = s.SessionCode,
+                QuizId = s.QuizId,
+                CreatedAt = s.CreatedAt,
+                EndAt = s.EndAt,
+            }).ToList();
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Lấy danh sách tất cả phiên chơi thành công",
+                response
+            );
+        }
+
     }
 }

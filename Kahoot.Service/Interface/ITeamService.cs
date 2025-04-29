@@ -14,5 +14,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> JoinTeamAsync(JoinTeamRequest teamId);
         Task<IBusinessResult> GetTeamsAsync(string SessionCode);
         Task<IBusinessResult> GetTeamScoreAsync(int teamId);
+        Task<IBusinessResult> DeleteTeamAsync(int teamId);
     }
 }

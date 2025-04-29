@@ -43,12 +43,12 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
 
             var session = await _unitOfWork.SessionRepository
-                .GetByWhere(s => s.SessionCode == request.SessionCode)
+                .GetByWhere(s => s.SessionCode == request.SessionCode && s.EndAt == null)
                 .Include(s => s.Teams)
                 .FirstOrDefaultAsync();
 
             if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại hoặc đã kết thúc");
 
             bool duplicate = session.Teams.Any(t => t.TeamName.Equals(request.TeamName, StringComparison.OrdinalIgnoreCase));
             if (duplicate)
@@ -77,6 +77,35 @@ namespace Kahoot.Service.Services
             };
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo Team thành công", response);
+        }
+        public async Task<IBusinessResult> DeleteTeamAsync(int teamId)
+        {
+            var team = await _unitOfWork.TeamRepository
+                .GetByWhere(t => t.TeamId == teamId)
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync();
+
+            if (team == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Team không tồn tại", null);
+            }
+
+            if (team.Players != null && team.Players.Any())
+            {
+                await _unitOfWork.PlayerRepository.RemoveRange(team.Players);
+            }
+
+            await _unitOfWork.TeamRepository.DeleteAsync(team);
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Xóa Team thành công", null);
+            }
+            catch (DbUpdateException)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Có lỗi xảy ra khi xóa Team", null);
+            }
         }
         public async Task<IBusinessResult> GetTeamsAsync(string sessionCode)
         {
@@ -168,7 +197,6 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_OK, "Team chưa có thành viên nào", new { TeamId = teamId, TotalScore = 0 });
             }
 
-            // Tính tổng điểm từ PlayerAnswer
             var totalScore = await _unitOfWork.PlayerAnswerRepository
                 .GetByWhere(pa => playerIds.Contains(pa.PlayerId))
                 .SumAsync(pa => pa.Score);

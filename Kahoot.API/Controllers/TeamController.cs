@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Azure.Core;
 using Kahoot.API.Hubs;
 using Kahoot.Common.BusinessResult;
 using Kahoot.Service.Interface;
@@ -65,6 +66,20 @@ namespace Kahoot.API.Controllers
         public async Task<IActionResult> GetTeamScore([FromRoute] int teamId)
         {
             var result = await _teamService.GetTeamScoreAsync(teamId);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpDelete("{SessionCode}/{teamId}")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> DeleteTeam([FromRoute] string SessionCode,  int teamId)
+        {
+            var result = await _teamService.DeleteTeamAsync(teamId);
+            if (result.StatusCode >= 200 && result.StatusCode < 300)
+            {
+                var team = (TeamResponse)result.Data!;
+                await _hubContext.Clients
+                    .Group(SessionCode)
+                    .TeamDelete(teamId);
+            }
             return StatusCode(result.StatusCode, result);
         }
     }

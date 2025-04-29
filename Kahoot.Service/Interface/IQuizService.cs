@@ -23,5 +23,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> AddImageToQuestion(int questionId, ImageUpload request);
         Task<IBusinessResult> SortOrderAsync(int quizId, int questionId, int newSortOrder);
         Task<IBusinessResult> ImportQuestionsFromFile(int quizId, IFormFile file);
+        Task<IBusinessResult> GetAllQuizzesPaging(string? search, int pageNumber, int pageSize);
     }
 }

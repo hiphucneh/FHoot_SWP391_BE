@@ -30,5 +30,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> RefreshToken(RefreshTokenRequest request);
         Task<IBusinessResult> UpdateUser(UpdateUserRequest request);
         Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status);
+        Task<IBusinessResult> GetUserSessionScoresAsync();
     }
 }

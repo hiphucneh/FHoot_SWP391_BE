@@ -12,7 +12,6 @@ namespace Kahoot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Teacher,User")]
     public class SessionController : ControllerBase
     {
         private readonly ISessionService _sessionService;
@@ -27,6 +26,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
         {
             var result = await _sessionService.CreateSessionAsync(request);
@@ -34,12 +34,14 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("my-session")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> GetMySessions()
         {
             var result = await _sessionService.GetMySessionsAsync();
             return StatusCode(result.StatusCode, result);
         }
         [HttpPost("{sessionCode}/finish")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> EndSession([FromRoute] string sessionCode)
         {
             var result = await _sessionService.EndSessionAsync(sessionCode);
@@ -53,6 +55,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost("{sessionCode}/start")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> StartSession([FromRoute] string sessionCode)
         {
             var result = await _sessionService.StartSessionAsync(sessionCode);
@@ -66,6 +69,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost("{sessionCode}/next-question")]
+        [Authorize(Roles = "Teacher")]
         public async Task<IActionResult> NextQuestion(
        [FromRoute] string sessionCode,
        [FromQuery] int sortOrder,
@@ -86,9 +90,18 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("{sessionCode}/leaderboard")]
+        [Authorize(Roles = "Teacher,User")]
         public async Task<IActionResult> GetLeaderboard([FromRoute] string sessionCode)
         {
             var result = await _sessionService.GetSessionTeamLeaderboardAsync(sessionCode);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("list")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Getsessionlist(int pageNumber = 1, int pageSize = 10, string? search = null)
+        {
+            var result = await _sessionService.GetAllSessionsAsync(pageNumber,pageSize,search);
             return StatusCode(result.StatusCode, result);
         }
 

@@ -137,5 +137,12 @@ namespace Kahoot.API.Controllers
             var result = await _userService.UpdateStatusUser(userId, status);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpGet("session-history")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> gethistorysession()
+        {
+            var result = await _userService.GetUserSessionScoresAsync();
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

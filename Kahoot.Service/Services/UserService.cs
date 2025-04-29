@@ -72,7 +72,7 @@ namespace Kahoot.Service.Services
             request.Password = HashPassword(request.Password);
             var acc = request.Adapt<User>();
             acc.FullName = "New User";
-            acc.RoleId = (int)RoleEnum.Customer;
+            acc.RoleId = (int)RoleEnum.User;
             acc.Status = UserStatus.Inactive.ToString();
             acc.Avatar = "";
             await _unitOfWork.UserRepository.AddAsync(acc);
@@ -181,7 +181,7 @@ namespace Kahoot.Service.Services
                     Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
                     Status = UserStatus.Active.ToString(),
-                    RoleId = (int)RoleEnum.Customer,
+                    RoleId = (int)RoleEnum.User,
                     FcmToken = fcmToken,
                     RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
@@ -255,7 +255,7 @@ namespace Kahoot.Service.Services
                         Password = HashPassword("12345"),
                         Avatar = userAvatar,
                         Status = UserStatus.Active.ToString(),
-                        RoleId = (int)RoleEnum.Customer,
+                        RoleId = (int)RoleEnum.User,
                         FcmToken = fcmToken, // Lưu FCM Token khi tạo user mới
                         RefreshToken = await _tokenHandler.GenerateRefreshToken(),
                         RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
@@ -440,5 +440,64 @@ namespace Kahoot.Service.Services
 
         }
 
+        public async Task<IBusinessResult> GetUserSessionScoresAsync()
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+
+            int userId = int.Parse(userIdClaim);
+            var user = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.Players)
+                    .ThenInclude(p => p.Team)
+                        .ThenInclude(t => t.Session)
+                .Include(u => u.Players)
+                    .ThenInclude(p => p.PlayerAnswers)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại", null);
+            }
+
+            var sessionScores = user.Players
+                .Where(p => p.Team != null && p.Team.Session != null)
+                .GroupBy(p => new
+                {
+                    p.Team.Session.SessionId,
+                    p.Team.Session.SessionName
+                })
+                .Select(g => new
+                {
+                    SessionId = g.Key.SessionId,
+                    Name = g.Key.SessionName,
+                    TotalScore = g.Sum(p => p.PlayerAnswers.Sum(pa => pa.Score))
+                })
+                .ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy danh sách Session và điểm thành công", sessionScores);
+        }
+
+        public async Task<IBusinessResult> ChangeRole(int userId, RoleEnum role)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            if (role != RoleEnum.User && role != RoleEnum.Teacher)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid role");
+            }
+
+            user.RoleId = (int)role;
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "User role updated successfully");
+        }
     }
 }

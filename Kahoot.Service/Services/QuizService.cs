@@ -16,6 +16,7 @@ using Kahoot.Service.Model.Request;
 using CsvHelper;
 using CsvHelper.Configuration;
 using ClosedXML.Excel;
+using System.Linq.Expressions;
 
 namespace Kahoot.Service.Services
 {
@@ -29,13 +30,11 @@ namespace Kahoot.Service.Services
             _unitOfWork ??= unitOfWork;
             _httpContextAccessor = httpContextAccessor;
         }
-
         private string GetUserIdClaim()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
-
         public async Task<IBusinessResult> FindQuizById(int id)
         {
             var quiz = await _unitOfWork.QuizRepository
@@ -50,8 +49,6 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Quiz found", response);
         }
-
-
         public async Task<IBusinessResult> CreateQuiz(QuizRequest request)
         {
             var userIdClaim = GetUserIdClaim();
@@ -111,7 +108,6 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Quiz updated successfully", quiz);
         }
-
         public async Task<IBusinessResult> DeleteQuiz(int quizId)
         {
             var quiz = await _unitOfWork.QuizRepository
@@ -231,7 +227,6 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "SortOrder updated successfully");
         }
-
         public async Task<IBusinessResult> UpdateQuestionsForQuiz(int quizId, List<QuestionRequest> questionRequests)
         {
             var userIdClaim = GetUserIdClaim();
@@ -282,8 +277,6 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Cập nhật câu hỏi và đáp án thành công");
         }
-
-
         public async Task<IBusinessResult> GetMyQuizzes()
         {
             var userIdClaim = GetUserIdClaim();
@@ -299,6 +292,27 @@ namespace Kahoot.Service.Services
             var response = quizzes.Adapt<List<QuizResponse>>();
             return new BusinessResult(Const.HTTP_STATUS_OK, "OK", response);
         }
+        public async Task<IBusinessResult> GetAllQuizzesPaging(string? search, int pageNumber, int pageSize)
+        {
+            Expression<Func<Quiz, bool>> predicate = null;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                predicate = q => q.Title.Contains(search);
+            }
+
+            var quizzes = await _unitOfWork.QuizRepository.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate: predicate,
+                orderBy: q => q.OrderByDescending(x => x.CreatedAt)
+            );
+
+            var response = quizzes.Adapt<List<QuizResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "OK", response);
+        }
+
 
         public async Task<IBusinessResult> AddImageToQuestion(int questionId, ImageUpload request)
         {
@@ -325,7 +339,6 @@ namespace Kahoot.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Image added to question", question);
         }
-
         public async Task<IBusinessResult> DeleteQuestion(int questionId)
         {
             var question = await _unitOfWork.QuestionRepository

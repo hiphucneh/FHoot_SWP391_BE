@@ -6,6 +6,7 @@ namespace Kahoot.API.Hubs
     public interface IGameHubClient
     {
         Task TeamCreated(TeamResponse team);
+        Task TeamDelete(int teamId);
         Task PlayerJoined(PlayerResponse player);
         Task SessionStarted();
         Task SessionEnded();

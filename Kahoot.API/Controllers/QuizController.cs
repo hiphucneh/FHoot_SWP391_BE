@@ -105,6 +105,12 @@ namespace Kahoot.API.Controllers
             var result = await _quizService.ImportQuestionsFromFile(quizId, file);
             return StatusCode(result.StatusCode, result);
         }
-
+        [HttpGet]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)}")]
+        public async Task<IActionResult> Getquizlist(string? search, int pageNumber, int pageSize)
+        {
+            var result = await _quizService.GetAllQuizzesPaging(search, pageNumber,pageSize);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
