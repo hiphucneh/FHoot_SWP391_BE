@@ -168,4 +168,16 @@ CREATE TABLE PlayerAnswer (
     CONSTRAINT FK_PA_QuestionSession FOREIGN KEY (QuestionSessionID) REFERENCES QuestionSession(QuestionSessionID) ,
     CONSTRAINT FK_PA_Answer          FOREIGN KEY (AnswerID)          REFERENCES Answer(AnswerID)             
 );
+
+CREATE TABLE SystemConfiguration (
+    ConfigId    INT             IDENTITY(1,1) PRIMARY KEY,
+    Name        NVARCHAR(255)   NOT NULL UNIQUE, -- tên config phải unique
+    MinValue    FLOAT           NULL,
+    MaxValue    FLOAT           NULL,
+    Unit        NVARCHAR(50)    NULL,
+    IsActive    BIT             NULL DEFAULT 1,
+    Description NVARCHAR(MAX)   NULL,
+    CreatedAt   DATETIME        NULL DEFAULT GETDATE(),
+    UpdatedAt   DATETIME        NULL DEFAULT GETDATE()
+);
 GO

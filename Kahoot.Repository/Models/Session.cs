@@ -11,13 +11,13 @@ public partial class Session
 
     public string SessionName { get; set; } = null!;
 
-    public string SessionCode { get; set; } = null!;
+    public string? SessionCode { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? EndAt { get; set; }
 
-    public bool EndedManually { get; set; } 
+    public bool EndedManually { get; set; }
 
     public virtual ICollection<QuestionSession> QuestionSessions { get; set; } = new List<QuestionSession>();
 
