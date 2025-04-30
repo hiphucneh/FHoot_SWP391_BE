@@ -75,7 +75,7 @@ namespace Kahoot.API.Controllers
        [FromQuery] int sortOrder,
        [FromQuery] int timeLimitSec)
         {
-            var svcResult = await _sessionService.NextQuestionAsync(sessionCode, sortOrder);
+            var svcResult = await _sessionService.NextQuestionAsync(sessionCode, sortOrder, timeLimitSec);
             if (svcResult.StatusCode < 200 || svcResult.StatusCode >= 300)
                 return StatusCode(svcResult.StatusCode, svcResult);
 
@@ -90,7 +90,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("{sessionCode}/leaderboard")]
-        [Authorize(Roles = "Teacher,User")]
+        [Authorize(Roles = "Teacher,User,Admin")]
         public async Task<IActionResult> GetLeaderboard([FromRoute] string sessionCode)
         {
             var result = await _sessionService.GetSessionTeamLeaderboardAsync(sessionCode);

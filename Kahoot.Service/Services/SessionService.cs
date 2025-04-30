@@ -117,7 +117,7 @@ namespace Kahoot.Service.Services
                 response
             );
         }
-        public async Task<IBusinessResult> NextQuestionAsync(string sessionCode, int sortOrder)
+        public async Task<IBusinessResult> NextQuestionAsync(string sessionCode, int sortOrder,int timeLimitSec)
         {
             var userIdClaim = GetUserIdClaim();
             if (string.IsNullOrEmpty(userIdClaim))
@@ -155,6 +155,7 @@ namespace Kahoot.Service.Services
             {
                 QuestionSessionId = qs.QuestionSessionId,
                 SortOrder = sortOrder,
+                TimeLimitSec = timeLimitSec,
                 RunAt = now,
                 Question = question.Adapt<QuestionResponse>()
             };

@@ -185,29 +185,58 @@ namespace Kahoot.Service.Services
         {
             var team = await _unitOfWork.TeamRepository
                 .GetByWhere(t => t.TeamId == teamId)
+                .Include(t => t.Players)
                 .FirstOrDefaultAsync();
+
             if (team == null)
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Team không tồn tại", null);
-            var playerIds = await _unitOfWork.PlayerRepository
-                .GetByWhere(p => p.TeamId == teamId)
-                .Select(p => p.PlayerId)
-                .ToListAsync();
-            if (!playerIds.Any())
+
+            if (team.Players == null || !team.Players.Any())
             {
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Team chưa có thành viên nào", new { TeamId = teamId, TotalScore = 0 });
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Team chưa có thành viên nào", new
+                {
+                    TeamId = teamId,
+                    TotalScore = 0,
+                    Players = new List<object>()
+                });
             }
 
-            var totalScore = await _unitOfWork.PlayerAnswerRepository
-                .GetByWhere(pa => playerIds.Contains(pa.PlayerId))
-                .SumAsync(pa => pa.Score);
+            var playerIds = team.Players.Select(p => p.PlayerId).ToList();
 
-            var response = new 
+            var playerScores = await _unitOfWork.PlayerAnswerRepository
+                .GetByWhere(pa => playerIds.Contains(pa.PlayerId))
+                .GroupBy(pa => pa.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    TotalScore = g.Sum(pa => pa.Score)
+                })
+                .ToListAsync();
+
+            var playersWithScore = team.Players.Select(p =>
+            {
+                var playerScore = playerScores.FirstOrDefault(ps => ps.PlayerId == p.PlayerId);
+                return new
+                {
+                    p.PlayerId,
+                    p.Name,
+                    p.ImageUrl,
+                    Score = playerScore?.TotalScore ?? 0
+                };
+            }).ToList();
+
+            var totalTeamScore = playersWithScore.Sum(p => p.Score);
+
+            var response = new
             {
                 TeamId = teamId,
-                TotalScore = totalScore
+                TeamName = team.TeamName,
+                TotalScore = totalTeamScore,
+                Players = playersWithScore
             };
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy điểm Team thành công", response);
         }
+
     }
 }

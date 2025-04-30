@@ -151,7 +151,7 @@ namespace Kahoot.Service.Services
                     QuizId = quizId,
                     QuestionText = qr.QuestionText,
                     TimeLimitSec = qr.TimeLimitSec,
-                    IsRandomAnswer = qr.IsRandomAnswer,
+                    IsRandomAnswer = false,
                     SortOrder = nextOrder++,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -253,7 +253,7 @@ namespace Kahoot.Service.Services
                     QuizId = quizId,
                     QuestionText = qr.QuestionText,
                     TimeLimitSec = qr.TimeLimitSec,
-                    IsRandomAnswer = qr.IsRandomAnswer,
+                    IsRandomAnswer = false,
                     SortOrder = sortOrder++,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
