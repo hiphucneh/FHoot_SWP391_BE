@@ -181,3 +181,29 @@ CREATE TABLE SystemConfiguration (
     UpdatedAt   DATETIME        NULL DEFAULT GETDATE()
 );
 GO
+ -- Bảng Package
+ CREATE TABLE Package (
+     PackageID INT IDENTITY(1,1) PRIMARY KEY,
+     PackageName NVARCHAR(100) UNIQUE NOT NULL,
+ 	PackageType NVARCHAR(50),
+     Price FLOAT CHECK (Price >= 0),
+     Duration INT CHECK (Duration > 0),
+     Description NVARCHAR(255),
+     CreatedAt DATETIME DEFAULT GETDATE(),
+     UpdatedAt DATETIME DEFAULT GETDATE()
+ );
+ 
+ CREATE TABLE UserPackage (
+     UserPackageID INT IDENTITY(1,1) PRIMARY KEY,
+     UserID INT NOT NULL,
+     PackageID INT NOT NULL,
+     StartDate DATETIME DEFAULT GETDATE(),
+     ExpiryDate DATETIME NOT NULL,
+     Status NVARCHAR(50),
+ 	IsUpgraded BIT DEFAULT 0,
+     PreviousPackageID INT NULL,
+     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+     FOREIGN KEY (PackageID) REFERENCES Package(PackageID) ON DELETE CASCADE,
+ 	FOREIGN KEY (PreviousPackageID) REFERENCES Package(PackageID)
+ );
+ 

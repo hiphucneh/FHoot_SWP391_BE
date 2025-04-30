@@ -19,5 +19,7 @@ namespace Kahoot.Repository.Interface
         IAnswerRepository AnswerRepository { get; }
         IQuestionSessionRepository QuestionSessionRepository { get; }
         ISystemConfigurationRepository SystemConfigurationRepository { get; }
+        IPackageRepository PackageRepository { get; }
+        IUserPackageRepository UserPackageRepository { get; }
     }
 }

@@ -17,6 +17,8 @@ namespace Kahoot.Repository
         private IPlayerRepository _playerRepository;
         private IAnswerRepository _answerRepository;
         private IPlayerAnswerRepository _playerAnswerRepository;
+        private IPackageRepository _packageRepository;
+        private IUserPackageRepository _userPackageRepository;
         private IQuestionSessionRepository _questionSessionRepository;
         private ISystemConfigurationRepository _systemConfigurationRepository;
         public UnitOfWork(KahootContext context)
@@ -35,7 +37,8 @@ namespace Kahoot.Repository
         public IQuestionRepository QuestionRepository => _questionRepository ??= new QuestionRepository(_context);
 
         public IPlayerRepository PlayerRepository => _playerRepository ??= new PlayerRepository(_context);
-
+        public IPackageRepository PackageRepository => _packageRepository ??= new PackageRepository(_context);
+        public IUserPackageRepository UserPackageRepository => _userPackageRepository ??= new UserPackageRepository(_context);
         public IAnswerRepository AnswerRepository => _answerRepository ??= new AnswerRepository(_context);
 
         public IPlayerAnswerRepository PlayerAnswerRepository => _playerAnswerRepository ??= new PlayerAnswerRepository(_context);

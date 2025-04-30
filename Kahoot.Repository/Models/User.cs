@@ -32,4 +32,6 @@ public partial class User
     public virtual ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
     public virtual Role Role { get; set; } = null!;
+
+    public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
 }

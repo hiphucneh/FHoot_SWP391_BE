@@ -17,6 +17,8 @@ public partial class KahootContext : DbContext
 
     public virtual DbSet<Answer> Answers { get; set; }
 
+    public virtual DbSet<Package> Packages { get; set; }
+
     public virtual DbSet<Player> Players { get; set; }
 
     public virtual DbSet<PlayerAnswer> PlayerAnswers { get; set; }
@@ -37,11 +39,13 @@ public partial class KahootContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserPackage> UserPackages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Answer>(entity =>
         {
-            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D4825024A87747B1");
+            entity.HasKey(e => e.AnswerId).HasName("PK__Answer__D4825024074134DA");
 
             entity.ToTable("Answer");
 
@@ -55,9 +59,29 @@ public partial class KahootContext : DbContext
                 .HasConstraintName("FK_Answer_Question");
         });
 
+        modelBuilder.Entity<Package>(entity =>
+        {
+            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035EC00C485BB");
+
+            entity.ToTable("Package");
+
+            entity.HasIndex(e => e.PackageName, "UQ__Package__73856F7ADDFE297A").IsUnique();
+
+            entity.Property(e => e.PackageId).HasColumnName("PackageID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Description).HasMaxLength(255);
+            entity.Property(e => e.PackageName).HasMaxLength(100);
+            entity.Property(e => e.PackageType).HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<Player>(entity =>
         {
-            entity.HasKey(e => e.PlayerId).HasName("PK__Player__4A4E74A8124D3A2E");
+            entity.HasKey(e => e.PlayerId).HasName("PK__Player__4A4E74A8BD977905");
 
             entity.ToTable("Player");
 
@@ -84,7 +108,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<PlayerAnswer>(entity =>
         {
-            entity.HasKey(e => e.PlayerAnswerId).HasName("PK__PlayerAn__B300DB8C38A4A747");
+            entity.HasKey(e => e.PlayerAnswerId).HasName("PK__PlayerAn__B300DB8CAF8B278A");
 
             entity.ToTable("PlayerAnswer");
 
@@ -113,7 +137,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C55A5B1D1");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C7B7C6557");
 
             entity.ToTable("Question");
 
@@ -134,7 +158,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<QuestionSession>(entity =>
         {
-            entity.HasKey(e => e.QuestionSessionId).HasName("PK__Question__B37E27292BBBF151");
+            entity.HasKey(e => e.QuestionSessionId).HasName("PK__Question__B37E2729F2981576");
 
             entity.ToTable("QuestionSession");
 
@@ -158,7 +182,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Quiz>(entity =>
         {
-            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6EC7A4C8F4");
+            entity.HasKey(e => e.QuizId).HasName("PK__Quiz__8B42AE6E7D979DFB");
 
             entity.ToTable("Quiz");
 
@@ -179,11 +203,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A91BCC5D8");
+            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A403766AB");
 
             entity.ToTable("Role");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B616012156976").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B61601C145950").IsUnique();
 
             entity.Property(e => e.RoleId)
                 .ValueGeneratedNever()
@@ -193,11 +217,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Session>(entity =>
         {
-            entity.HasKey(e => e.SessionId).HasName("PK__Session__C9F49270713BCDE4");
+            entity.HasKey(e => e.SessionId).HasName("PK__Session__C9F492709B4505DE");
 
             entity.ToTable("Session");
 
-            entity.HasIndex(e => e.SessionCode, "UQ__Session__30AEBB8454934CF9").IsUnique();
+            entity.HasIndex(e => e.SessionCode, "UQ__Session__30AEBB846CF19D6E").IsUnique();
 
             entity.Property(e => e.SessionId).HasColumnName("SessionID");
             entity.Property(e => e.CreatedAt)
@@ -215,11 +239,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<SystemConfiguration>(entity =>
         {
-            entity.HasKey(e => e.ConfigId).HasName("PK__SystemCo__C3BC335C180284E9");
+            entity.HasKey(e => e.ConfigId).HasName("PK__SystemCo__C3BC335CA135C73B");
 
             entity.ToTable("SystemConfiguration");
 
-            entity.HasIndex(e => e.Name, "UQ__SystemCo__737584F644DB0BE4").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__SystemCo__737584F661B05161").IsUnique();
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -234,7 +258,7 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<Team>(entity =>
         {
-            entity.HasKey(e => e.TeamId).HasName("PK__Team__123AE7B9AB22A15C");
+            entity.HasKey(e => e.TeamId).HasName("PK__Team__123AE7B9AF9EC19A");
 
             entity.ToTable("Team");
 
@@ -255,11 +279,11 @@ public partial class KahootContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACCEB22DE7");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC29B13DF1");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D10534509F38BF").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D10534C73C4F42").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(255);
@@ -278,6 +302,36 @@ public partial class KahootContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_User_Role");
+        });
+
+        modelBuilder.Entity<UserPackage>(entity =>
+        {
+            entity.HasKey(e => e.UserPackageId).HasName("PK__UserPack__AE9B91FABC1286A3");
+
+            entity.ToTable("UserPackage");
+
+            entity.Property(e => e.UserPackageId).HasColumnName("UserPackageID");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.IsUpgraded).HasDefaultValue(false);
+            entity.Property(e => e.PackageId).HasColumnName("PackageID");
+            entity.Property(e => e.PreviousPackageId).HasColumnName("PreviousPackageID");
+            entity.Property(e => e.StartDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Package).WithMany(p => p.UserPackagePackages)
+                .HasForeignKey(d => d.PackageId)
+                .HasConstraintName("FK__UserPacka__Packa__395884C4");
+
+            entity.HasOne(d => d.PreviousPackage).WithMany(p => p.UserPackagePreviousPackages)
+                .HasForeignKey(d => d.PreviousPackageId)
+                .HasConstraintName("FK__UserPacka__Previ__3A4CA8FD");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserPackages)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK__UserPacka__UserI__3864608B");
         });
 
         OnModelCreatingPartial(modelBuilder);

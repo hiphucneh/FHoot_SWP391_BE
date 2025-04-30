@@ -19,6 +19,11 @@ namespace Kahoot.Repository.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        public IQueryable<TEntity> GetAll()
+        {
+            return _context.Set<TEntity>().AsQueryable().AsNoTracking();
+        }
+
         public async Task Attach(TEntity entity)
         {
             _context.Set<TEntity>().Attach(entity);

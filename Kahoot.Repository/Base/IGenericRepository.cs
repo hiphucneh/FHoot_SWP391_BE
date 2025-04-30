@@ -7,7 +7,7 @@ namespace Kahoot.Repository.Base
 
         Task<TEntity> GetByIdAsync(object id);
         IQueryable<TEntity> GetByWhere(Expression<Func<TEntity, bool>> predicate);
-
+        IQueryable<TEntity> GetAll();
         Task Attach(TEntity entity);
 
         Task AddAsync(TEntity entity);
