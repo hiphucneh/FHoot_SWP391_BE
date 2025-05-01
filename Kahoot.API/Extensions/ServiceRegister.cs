@@ -54,6 +54,7 @@ namespace Kahoot.API.Extensions
             services.AddScoped<ITeamService, TeamService>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<IPackageService, PackageService>();
+            services.AddScoped<IDashboardService,DashboardService>();
             services.AddScoped<ISystemConfigurationService, SystemConfigationService>();
             services.AddSignalR();
         }

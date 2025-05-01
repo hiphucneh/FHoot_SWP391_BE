@@ -18,6 +18,7 @@ using Kahoot.Service.Interface;
 using Kahoot.Service.Model.Request;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
+using NutriDiet.Service.Enums;
 
 namespace Kahoot.Service.Services
 {
@@ -198,13 +199,9 @@ namespace Kahoot.Service.Services
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
             // Nếu có gói đang hoạt động
-            if (userPackageCheck != null)
+            if (userPackageCheck != null || user.RoleId.Equals((int)RoleEnum.Teacher))
             {
-                if (userPackageCheck.Package.PackageType == "Advanced")
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Bạn đang sử dụng gói Advanced Premium. Không thể hạ cấp hoặc đăng ký gói mới. Vui lòng chờ hết hạn.");
-                }
-                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Bạn đang có gói Basic Premium đang hoạt động. Vui lòng nâng cấp lên Advanced Premium hoặc chờ hết hạn.");
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Bạn đang có gói Basic Premium đang hoạt động. Bạn đang là host");
             }
 
             // Lấy thông tin gói mới
@@ -249,37 +246,22 @@ namespace Kahoot.Service.Services
                 .Include(x => x.Package)
                 .OrderByDescending(x => x.StartDate)
                 .FirstOrDefaultAsync();
-
+            
             if (userPackage == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại.");
             }
+
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null) { return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại."); }
 
             if (status.ToLower() == "success" || status.ToLower() == "paid")
             {
                 if (userPackage.StartDate.HasValue && userPackage.Package?.Duration.HasValue == true)
                 {
                     userPackage.Status = "Active";
-                    if (userPackage.IsUpgraded == true)
-                    {
-                        // Nếu là nâng cấp, giữ thời gian còn lại của gói cũ
-                        var oldUserPackage = await _unitOfWork.UserPackageRepository
-                            .GetByWhere(x => x.UserId == userId && x.PackageId == userPackage.PreviousPackageId && x.Status == "Active")
-                            .FirstOrDefaultAsync();
-                        if (oldUserPackage != null)
-                        {
-                            var remainingDays = (oldUserPackage.ExpiryDate - DateTime.UtcNow).Days;
-                            userPackage.ExpiryDate = DateTime.UtcNow.AddDays(remainingDays);
-                            oldUserPackage.Status = "Expired"; // Vô hiệu hóa gói cũ
-                            await _unitOfWork.UserPackageRepository.UpdateAsync(oldUserPackage);
-                        }
-                    }
-                    else
-                    {
-                        // Nếu là đăng ký mới, tính ExpiryDate bình thường
-                        userPackage.ExpiryDate = userPackage.StartDate.Value.AddDays(userPackage.Package.Duration.Value);
-                    }
-
+                    user.RoleId = (int)RoleEnum.Teacher;
+                    userPackage.ExpiryDate = userPackage.StartDate.Value.AddDays(userPackage.Package.Duration.Value);
                     await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
                     await _unitOfWork.SaveChangesAsync();
                 }
