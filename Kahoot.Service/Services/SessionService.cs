@@ -105,7 +105,7 @@ namespace Kahoot.Service.Services
             var response = questions.Select(q => new QuestionSessionResponse
             {
                 QuestionSessionId = 0,               
-                Question = q.Adapt<QuestionResponse>(),
+                Question = q.Adapt<QuestionHideAnswerResponse>(),
                 SortOrder = q.SortOrder,
                 TimeLimitSec = q.TimeLimitSec,
                 RunAt = now
@@ -129,7 +129,7 @@ namespace Kahoot.Service.Services
                 .Include(s => s.Quiz)
                 .FirstOrDefaultAsync();
             if (session == null)
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại hoặc đã kết thúc");
             if (session.Quiz.CreatedBy != userId)
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn không có quyền");
 
@@ -157,10 +157,10 @@ namespace Kahoot.Service.Services
                 SortOrder = sortOrder,
                 TimeLimitSec = timeLimitSec,
                 RunAt = now,
-                Question = question.Adapt<QuestionResponse>()
+                Question = question.Adapt<QuestionHideAnswerResponse>()
             };
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo phiên hỏi kế tiếp thành công", dto);
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo câu hỏi kế tiếp thành công", dto);
         }
         public async Task<IBusinessResult> GetMySessionsAsync()
         {

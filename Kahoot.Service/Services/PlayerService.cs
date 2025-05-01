@@ -12,14 +12,10 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Kahoot.Service.Model.Response;
+using Kahoot.Service.Model.Request;
 
 namespace Kahoot.Service.Services
 {
-    public class AnswerQuestionRequest
-    {
-        public int QuestionSessionId { get; set; }
-        public int AnswerId { get; set; }
-    }
 
 
     public class PlayerService : IPlayerService
@@ -45,7 +41,12 @@ namespace Kahoot.Service.Services
             if (string.IsNullOrEmpty(userIdClaim))
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
             var userId = int.Parse(userIdClaim);
-
+            var session = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.SessionCode == request.SessionCode && s.EndAt == null)
+                .Include(s => s.Quiz)
+                .FirstOrDefaultAsync();
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại hoặc đã kết thúc");
             var qs = await _unitOfWork.QuestionSessionRepository
                 .GetByWhere(x => x.QuestionSessionId == request.QuestionSessionId)
                 .Include(x => x.Session)
