@@ -13,6 +13,7 @@ namespace Kahoot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "User")]
     public class PlayerController : ControllerBase
     {
         private readonly IPlayerService _playerService;
@@ -33,6 +34,20 @@ namespace Kahoot.API.Controllers
             await _hubContext.Clients
                .Group(request.SessionCode)
                .PlayerAnswer(playeranswerdto);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("result")]
+        public async Task<IActionResult> GetResultInSession([FromQuery] string sessionCode)
+        {
+            var result = await _playerService.GetPlayerResultInSession(sessionCode);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("my-sessions")]
+        public async Task<IActionResult> GetMySessions()
+        {
+            var result = await _playerService.GetAllSessionsOfUserAsync();
             return StatusCode(result.StatusCode, result);
         }
     }

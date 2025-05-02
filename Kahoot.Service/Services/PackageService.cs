@@ -188,8 +188,8 @@ namespace Kahoot.Service.Services
         public async Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
             var userId = await _tokenHandlerHelper.GetUserId();
-            var now = DateTime.UtcNow;
-
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
             // Kiểm tra gói hiện tại của người dùng
             var userPackageCheck = await _unitOfWork.UserPackageRepository
                 .GetByWhere(x => x.UserId == userId && x.Status == "Active" && x.ExpiryDate > now)

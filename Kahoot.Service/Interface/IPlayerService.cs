@@ -12,5 +12,8 @@ namespace Kahoot.Service.Interface
     public interface IPlayerService
     {
         Task<IBusinessResult> AnswerQuestionAsync(AnswerQuestionRequest request);
+
+        Task<IBusinessResult> GetPlayerResultInSession(string sessionCode);
+        Task<IBusinessResult> GetAllSessionsOfUserAsync();
     }
 }

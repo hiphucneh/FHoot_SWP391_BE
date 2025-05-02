@@ -73,6 +73,11 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Answer không hợp lệ");
             bool isCorrect = answer.IsCorrect;
 
+            var trueAnswerId = await _unitOfWork.AnswerRepository
+    .GetByWhere(a => a.QuestionId == qs.QuestionId && a.IsCorrect)
+    .Select(a => a.AnswerId)
+    .FirstOrDefaultAsync();
+
             int existingCount = await _unitOfWork.PlayerAnswerRepository
                 .GetByWhere(pa => pa.QuestionSessionId == request.QuestionSessionId)
                 .CountAsync();
@@ -107,7 +112,8 @@ namespace Kahoot.Service.Services
                 IsCorrect = isCorrect,
                 Score = score,
                 AnswerOrder = answerOrder,
-                TotalScore = totalScore
+                TotalScore = totalScore,
+                TrueAnswer = trueAnswerId
             };
             return new BusinessResult(
                 Const.HTTP_STATUS_OK,
@@ -115,6 +121,85 @@ namespace Kahoot.Service.Services
                 response
             );
         }
+
+        public async Task<IBusinessResult> GetPlayerResultInSession(string sessionCode)
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+
+            var userId = int.Parse(userIdClaim);
+
+            var session = await _unitOfWork.SessionRepository
+                .GetByWhere(s => s.SessionCode == sessionCode)
+                .FirstOrDefaultAsync();
+
+            if (session == null)
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Session không tồn tại");
+
+            var player = await _unitOfWork.PlayerRepository
+                .GetByWhere(p => p.UserId == userId && p.Team.SessionId == session.SessionId)
+                .FirstOrDefaultAsync();
+
+            if (player == null)
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Bạn chưa tham gia phiên chơi này");
+
+            // 👉 Include QuestionSession -> Question và Answer
+            var playerAnswers = await _unitOfWork.PlayerAnswerRepository
+                .GetByWhere(pa => pa.PlayerId == player.PlayerId && pa.QuestionSession.SessionId == session.SessionId)
+                .Include(pa => pa.QuestionSession)
+                    .ThenInclude(qs => qs.Question)
+                .Include(pa => pa.Answer)
+                .Select(pa => new PlayerAnswerInfo
+                {
+                    QuestionSessionId = pa.QuestionSessionId,
+                    AnswerId = pa.AnswerId,
+                    IsCorrect = pa.IsCorrect,
+                    Score = pa.Score,
+                    AnswerOrder = pa.AnswerOrder,
+                    QuestionText = pa.QuestionSession.Question.QuestionText,
+                    AnswerText = pa.Answer.AnswerText
+                })
+                .ToListAsync();
+
+            var totalScore = playerAnswers.Sum(x => x.Score);
+
+            var result = new PlayerSessionResultResponse
+            {
+                PlayerId = player.PlayerId,
+                TotalScore = totalScore,
+                Answers = playerAnswers
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy kết quả thành công", result);
+        }
+
+        public async Task<IBusinessResult> GetAllSessionsOfUserAsync()
+        {
+            var userIdClaim = GetUserIdClaim();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "User chưa đăng nhập hoặc không hợp lệ");
+
+            var userId = int.Parse(userIdClaim);
+
+            var sessions = await _unitOfWork.PlayerRepository
+                .GetByWhere(p => p.UserId == userId)
+                .Include(p => p.Team)
+                    .ThenInclude(t => t.Session)
+                        .ThenInclude(s => s.Quiz)
+                .Select(p => new UserSessionInfoResponse
+                {
+                    SessionName = p.Team.Session.SessionName,
+                    SessionId = p.Team.Session.SessionId,
+                    SessionCode = p.Team.Session.SessionCode,
+                    EndAt = p.Team.Session.EndAt
+                })
+                .Distinct()
+                .ToListAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy danh sách phiên chơi thành công", sessions);
+        }
+
     }
 
 }

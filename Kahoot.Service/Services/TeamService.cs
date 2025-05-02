@@ -197,6 +197,7 @@ namespace Kahoot.Service.Services
                 {
                     TeamId = teamId,
                     TotalScore = 0,
+                    Rank = 0,
                     Players = new List<object>()
                 });
             }
@@ -227,16 +228,43 @@ namespace Kahoot.Service.Services
 
             var totalTeamScore = playersWithScore.Sum(p => p.Score);
 
+            var sessionId = team.SessionId;
+            var allTeams = await _unitOfWork.TeamRepository
+                .GetByWhere(t => t.SessionId == sessionId)
+                .Include(t => t.Players)
+                .ToListAsync();
+
+            var teamRankList = new List<(int TeamId, int TotalScore)>();
+
+            foreach (var t in allTeams)
+            {
+                var tPlayerIds = t.Players.Select(p => p.PlayerId).ToList();
+                var tScore = await _unitOfWork.PlayerAnswerRepository
+                    .GetByWhere(pa => tPlayerIds.Contains(pa.PlayerId))
+                    .SumAsync(pa => pa.Score);
+
+                teamRankList.Add((t.TeamId, tScore));
+            }
+
+            var rankedList = teamRankList
+                .OrderByDescending(x => x.TotalScore)
+                .Select((item, index) => new { item.TeamId, Rank = index + 1 })
+                .ToList();
+
+            var currentTeamRank = rankedList.FirstOrDefault(r => r.TeamId == teamId)?.Rank ?? 0;
+
             var response = new
             {
                 TeamId = teamId,
                 TeamName = team.TeamName,
                 TotalScore = totalTeamScore,
+                Rank = currentTeamRank,
                 Players = playersWithScore
             };
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy điểm Team thành công", response);
         }
+
 
     }
 }

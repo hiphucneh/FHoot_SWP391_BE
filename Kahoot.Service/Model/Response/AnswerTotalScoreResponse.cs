@@ -12,5 +12,6 @@ namespace Kahoot.Service.Model.Response
         public int Score { get; set; }
         public int AnswerOrder { get; set; }
         public int TotalScore { get; set; }
+        public int? TrueAnswer { get; set; }
     }
 }
