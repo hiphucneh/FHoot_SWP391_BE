@@ -17,6 +17,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using ClosedXML.Excel;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace Kahoot.Service.Services
 {
@@ -24,11 +25,13 @@ namespace Kahoot.Service.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AIGeneratorService _aiGeneratorService;
 
-        public QuizService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public QuizService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aiGeneratorService)
         {
             _unitOfWork ??= unitOfWork;
             _httpContextAccessor = httpContextAccessor;
+            _aiGeneratorService = aiGeneratorService;
         }
         private string GetUserIdClaim()
         {
@@ -445,6 +448,94 @@ namespace Kahoot.Service.Services
             // --- 4) Tái sử dụng logic thêm câu hỏi có sẵn ---
             var result = await AddQuestionsToQuiz(quizId, questionRequests);
             return result;
+        }
+
+        public async Task<IBusinessResult> CreateQuizAI(CreateQuizAIRequest request)
+        {
+            // Validate NumberOfAnswers
+            if (request.NumberOfAnswers < 2 || request.NumberOfAnswers > 4)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Số lượng đáp án mỗi câu phải từ 2 đến 4.");
+            }
+
+            // Tạo mẫu danh sách câu hỏi tùy theo số lượng đáp án
+            var sampleOptions = new List<string> { "Option A", "Option B", "Option C", "Option D" }
+                .Take(request.NumberOfAnswers)
+                .ToList();
+
+            var quizSample = new List<QuizQuestion>
+    {
+        new QuizQuestion
+        {
+            Question = "Sample question?",
+            Options = sampleOptions,
+            CorrectAnswer = sampleOptions.First()
+        }
+    };
+
+            var jsonSampleOutput = JsonSerializer.Serialize(quizSample);
+
+            // Prompt cho AI với số lượng đáp án linh hoạt
+            var input = $@"
+Bạn là một chuyên gia giáo dục. Hãy tạo một bài kiểm tra gồm {request.NumberOfQuestions} câu hỏi trắc nghiệm theo các yêu cầu sau:
+- Chủ đề: {request.Topic}
+- Độ khó: {request.DifficultyLevel}
+- Mỗi câu hỏi có {request.NumberOfAnswers} đáp án (Options), chỉ có 1 đáp án đúng (CorrectAnswer)
+- Nội dung phù hợp với trình độ người dùng.
+
+Yêu cầu phản hồi:
+- Trả về đúng định dạng JSON sau: {jsonSampleOutput}
+- Không thêm mô tả, markdown hoặc bất kỳ giải thích nào khác.
+";
+
+            var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
+
+            var quizData = JsonSerializer.Deserialize<List<QuizQuestion>>(airesponse);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Quiz đã tạo thành công", quizData);
+        }
+
+
+        public async Task<IBusinessResult> GenerateAnswersForQuestionAI(string content)
+        {
+            //var userIdClaim = GetUserIdClaim();
+            //var userId = int.Parse(userIdClaim);
+            //var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            //if (!isPremiumResult)
+            //{
+            //    return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            //}
+
+            var sampleAnswerOutput = new QuizQuestion
+            {
+                Question = "Is the Earth round?",
+                Options = new List<string> { "Yes", "No", "Maybe", "Definitely not" },
+                CorrectAnswer = "Yes"
+            };
+
+            var jsonSampleOutput = JsonSerializer.Serialize(sampleAnswerOutput);
+
+            var input = $@"
+Bạn là một chuyên gia giáo dục. Nhiệm vụ của bạn là tạo 4 đáp án cho câu hỏi sau:
+Câu hỏi: {content}
+Yêu cầu:
+- Tạo ra nhiều nhất 4 đáp án (Options).
+- Chỉ có một đáp án đúng (CorrectAnswer).
+Quy định phản hồi:
+- Trả về nhiều nhất 4 đáp án trong định dạng JSON như sau:
+  {{
+    ""Question"": ""{content}"",
+    ""Options"": [""Đáp án 1"", ""Đáp án 2"", ""Đáp án 3"", ""Đáp án 4""],
+    ""CorrectAnswer"": ""Đáp án đúng""
+  }}
+Chỉ trả về JSON thuần túy, không kèm mô tả, markdown hoặc giải thích.
+";
+
+            var aiResponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
+
+            var quizQuestionData = JsonSerializer.Deserialize<QuizQuestion>(aiResponse);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Đáp án đã được tạo thành công", quizQuestionData);
         }
     }
 }

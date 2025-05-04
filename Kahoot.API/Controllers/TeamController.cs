@@ -24,7 +24,7 @@ namespace Kahoot.API.Controllers
             _hubContext = hubContext;
         }
         [HttpPost]
-        [Authorize(Roles = "Teacher,User")]
+        [Authorize]
         public async Task<IActionResult> CreateTeam([FromBody] TeamRequest request)
         {
             var result = await _teamService.CreateTeamAsync(request);
@@ -39,7 +39,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("session/{sessionCode}")]
-        [Authorize(Roles = "Teacher,User")]
+        [Authorize]
         public async Task<IActionResult> GetTeams([FromRoute] string sessionCode)
         {
             var result = await _teamService.GetTeamsAsync(sessionCode);
@@ -62,14 +62,14 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("{teamId}/score")]
-        [Authorize(Roles = "Teacher,User")]
+        [Authorize]
         public async Task<IActionResult> GetTeamScore([FromRoute] int teamId)
         {
             var result = await _teamService.GetTeamScoreAsync(teamId);
             return StatusCode(result.StatusCode, result);
         }
         [HttpDelete("{SessionCode}/{teamId}")]
-        [Authorize(Roles = "Teacher")]
+        [Authorize]
         public async Task<IActionResult> DeleteTeam([FromRoute] string SessionCode,  int teamId)
         {
             var result = await _teamService.DeleteTeamAsync(teamId);

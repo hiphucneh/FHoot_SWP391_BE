@@ -19,6 +19,8 @@ using Kahoot.Service.Model.Request;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
 using NutriDiet.Service.Enums;
+using System.Net.Mail;
+using System.Net;
 
 namespace Kahoot.Service.Services
 {
@@ -217,7 +219,7 @@ namespace Kahoot.Service.Services
                 UserId = userId,
                 PackageId = packageId,
                 StartDate = now,
-                ExpiryDate = now, // Sẽ cập nhật sau khi thanh toán thành công
+                ExpiryDate = now,
                 Status = "InActive"
             };
             await _unitOfWork.UserPackageRepository.AddAsync(newUserPackage);
@@ -246,14 +248,17 @@ namespace Kahoot.Service.Services
                 .Include(x => x.Package)
                 .OrderByDescending(x => x.StartDate)
                 .FirstOrDefaultAsync();
-            
+
             if (userPackage == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại.");
             }
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            if (user == null) { return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại."); }
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại.");
+            }
 
             if (status.ToLower() == "success" || status.ToLower() == "paid")
             {
@@ -264,6 +269,7 @@ namespace Kahoot.Service.Services
                     userPackage.ExpiryDate = userPackage.StartDate.Value.AddDays(userPackage.Package.Duration.Value);
                     await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
                     await _unitOfWork.SaveChangesAsync();
+                    await SendPaymentSuccessEmail(user.Email, userPackage);
                 }
                 else
                 {
@@ -272,6 +278,104 @@ namespace Kahoot.Service.Services
             }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+        }
+
+        private async Task SendPaymentSuccessEmail(string email, UserPackage userPackage)
+        {
+            try
+            {
+                var packageName = userPackage.Package?.PackageName ?? "Không xác định";
+                var price = userPackage.Package?.Price ?? 0;
+                var startDate = userPackage.StartDate?.ToString("dd/MM/yyyy") ?? "-";
+                var expiryDate = userPackage.ExpiryDate.ToString("dd/MM/yyyy") ?? "-";
+
+                var emailContent = $@"
+<style>
+    body {{
+        font-family: Arial, sans-serif;
+        color: #333;
+    }}
+    h2 {{
+        color: #FFA500;
+    }}
+    table {{
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }}
+    th, td {{
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }}
+    th {{
+        background-color: #FFA500;
+        color: white;
+    }}
+    tr:nth-child(even) {{
+        background-color: #f9f9f9;
+    }}
+    a {{
+        color: #007BFF;
+        text-decoration: none;
+    }}
+</style>
+
+<p>Xin chào <a href='mailto:{email}'>{email}</a>,</p>
+<p>Bạn đã thanh toán thành công gói dịch vụ trên hệ thống <strong>Kahoot</strong>.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tên gói</th>
+            <th>Giá</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày hết hạn</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{packageName}</td>
+            <td>{price:N0} VNĐ</td>
+            <td>{startDate}</td>
+            <td>{expiryDate}</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>Xin cảm ơn bạn đã tin tưởng sử dụng dịch vụ của chúng tôi.</p>
+<p>Trân trọng,</p>
+<p><strong>Đội ngũ hỗ trợ Kahoot</strong></p>
+<p>Website: <a href='https://kahoot-fe-nu.vercel.app'>https://kahoot-fe-nu.vercel.app</a></p>
+";
+
+
+                var emailSender = Environment.GetEnvironmentVariable("EMAIL_SENDER");
+                var emailSenderPassword = Environment.GetEnvironmentVariable("EMAIL_SENDER_PASSWORD");
+
+                MailMessage mail = new MailMessage
+                {
+                    From = new MailAddress("support@kahoot.com", "Kahoot Support Team"),
+                    Subject = "Xác nhận thanh toán thành công",
+                    Body = emailContent,
+                    IsBodyHtml = true
+                };
+                mail.To.Add(email);
+
+                using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    smtp.UseDefaultCredentials = false;
+                    smtp.EnableSsl = true;
+                    smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    smtp.Credentials = new NetworkCredential(emailSender, emailSenderPassword);
+
+                    await smtp.SendMailAsync(mail);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Gửi email thất bại: " + ex.Message);
+            }
         }
 
         private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, User user, string cancelUrl, string returnUrl, List<ItemData> itemdata)

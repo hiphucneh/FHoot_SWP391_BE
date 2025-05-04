@@ -1,5 +1,6 @@
 ﻿using Kahoot.Common.BusinessResult;
 using Kahoot.Repository.Models;
+using Kahoot.Service.Model.Request;
 using Kahoot.Service.ModelDTOs.Request;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -24,5 +25,8 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> SortOrderAsync(int quizId, int questionId, int newSortOrder);
         Task<IBusinessResult> ImportQuestionsFromFile(int quizId, IFormFile file);
         Task<IBusinessResult> GetAllQuizzesPaging(string? search, int pageNumber, int pageSize);
+        Task<IBusinessResult> CreateQuizAI(CreateQuizAIRequest request);
+        Task<IBusinessResult> GenerateAnswersForQuestionAI(string content);
+
     }
 }

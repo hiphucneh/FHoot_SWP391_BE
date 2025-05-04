@@ -1,5 +1,6 @@
 ﻿using Kahoot.Repository.Models;
 using Kahoot.Service.Interface;
+using Kahoot.Service.Model.Request;
 using Kahoot.Service.ModelDTOs.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("my-quiz")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> GetMyQuizzes()
         {
             var result = await _quizService.GetMyQuizzes();
@@ -27,7 +28,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> GetQuizById(int id)
         {
             var result = await _quizService.FindQuizById(id);
@@ -35,7 +36,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> CreateQuiz([FromForm] QuizRequest request)
         {
             var result = await _quizService.CreateQuiz(request);
@@ -43,7 +44,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> UpdateQuiz(int id, [FromForm] QuizRequest request)
         {
             var result = await _quizService.UpdateQuiz(id, request);
@@ -51,7 +52,7 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost("{id}/questions")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> AddQuestionsToQuiz(int id, [FromBody] List<QuestionRequest> questionRequests)
         {
             var result = await _quizService.AddQuestionsToQuiz(id, questionRequests);
@@ -59,15 +60,15 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPut("{id}/questions")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
-        public async Task<IActionResult> UpdateQuestionsToQuiz(int id, [FromBody] List<QuestionRequest> questionRequests)
+        [Authorize]
+        public async Task<IActionResult> UpdateQuestionsToQuiz(int id, [FromForm] List<QuestionRequest> questionRequests)
         {
             var result = await _quizService.UpdateQuestionsForQuiz(id, questionRequests);
             return StatusCode(result.StatusCode, result);
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
             var result = await _quizService.DeleteQuiz(id);
@@ -75,21 +76,21 @@ namespace Kahoot.API.Controllers
         }
 
         [HttpPost("questions/{questionId}/image")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> AddImageToQuestion(int questionId, [FromForm] ImageUpload request)
         {
             var result = await _quizService.AddImageToQuestion(questionId, request);
             return StatusCode(result.StatusCode, result);
         }
         [HttpDelete("questions/{questionId}")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> DeleteQuestion(int questionId)
         {
             var result = await _quizService.DeleteQuestion(questionId);
             return StatusCode(result.StatusCode, result);
         }
         [HttpPut("{id}/questions/{questionId}/sortorder")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> SortQuestion(
             [FromRoute] int id,
             [FromRoute] int questionId,
@@ -99,7 +100,7 @@ namespace Kahoot.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
         [HttpPost("{quizId}/import")]
-        [Authorize(Roles = $"{nameof(RoleEnum.Teacher)}")]
+        [Authorize]
         public async Task<IActionResult> Import(int quizId, IFormFile file)
         {
             var result = await _quizService.ImportQuestionsFromFile(quizId, file);
@@ -112,5 +113,20 @@ namespace Kahoot.API.Controllers
             var result = await _quizService.GetAllQuizzesPaging(search, pageNumber,pageSize);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpPost("generate-ai")]
+        [Authorize]
+        public async Task<IActionResult> GenerateQuizByAI([FromForm] CreateQuizAIRequest request)
+        {
+            var result = await _quizService.CreateQuizAI(request);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpPost("generate-answer-ai")]
+        [Authorize]
+        public async Task<IActionResult> GenerateAnswersForQuestionAI([FromForm] string content)
+        {
+            var result = await _quizService.GenerateAnswersForQuestionAI(content);
+            return StatusCode(result.StatusCode, result);
+        }
+        
     }
 }

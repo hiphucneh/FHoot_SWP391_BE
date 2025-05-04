@@ -178,7 +178,7 @@ namespace Kahoot.Service.Services
                 {
                     FullName = payload.Name ?? "User",
                     Email = payload.Email,
-                    Password = HashPassword("tungdeptrai123142"),
+                    Password = HashPassword("Phucdeptrai"),
                     Avatar = payload.Picture,
                     Status = UserStatus.Active.ToString(),
                     RoleId = (int)RoleEnum.User,

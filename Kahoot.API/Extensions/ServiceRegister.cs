@@ -24,8 +24,8 @@ namespace Kahoot.API.Extensions
         public static void RegisterServices(IServiceCollection services, IConfiguration configuration)
         {
 
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            //var connectionString = "Server=tcp:fptkahoot.database.windows.net,1433;Initial Catalog=Kahoot;Persist Security Info=False;User ID=fptkahoot;Password=Peleven1-2-3;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = "Server=tcp:fptkahoot.database.windows.net,1433;Initial Catalog=Kahoot;Persist Security Info=False;User ID=fptkahoot;Password=Peleven1-2-3;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
             services.AddDbContext<KahootContext>(opt =>
                 opt.UseSqlServer(connectionString)
                    .EnableSensitiveDataLogging()
@@ -48,6 +48,7 @@ namespace Kahoot.API.Extensions
             services.AddScoped<TokenHandlerHelper>();
             services.AddScoped<CloudinaryHelper>();
             services.AddScoped<FirebaseService>();
+            services.AddScoped<AIGeneratorService>();
             services.AddScoped<IPlayerService, PlayerService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IQuizService, QuizService>();
@@ -121,7 +122,7 @@ namespace Kahoot.API.Extensions
                     Scheme = "bearer",
                     BearerFormat = "JWT"
                 });
-
+                c.EnableAnnotations();
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
