@@ -12,6 +12,7 @@ namespace Kahoot.API.Hubs
         Task SessionEnded();
         Task ShowQuestion(QuestionSessionResponse question);
         Task PlayerAnswer(AnswerTotalScoreResponse answerTotalScoreResponse);
+        Task ReceiveLeaderboard(TeamLeaderboardItem leaderboard);
 
     }
 }

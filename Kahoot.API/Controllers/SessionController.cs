@@ -94,6 +94,12 @@ namespace Kahoot.API.Controllers
         public async Task<IActionResult> GetLeaderboard([FromRoute] string sessionCode)
         {
             var result = await _sessionService.GetSessionTeamLeaderboardAsync(sessionCode);
+
+            if (result.StatusCode >= 200 && result.StatusCode < 300)
+            {
+                var leaderboardData = (TeamLeaderboardItem)result.Data!;
+                await _hubContext.Clients.Group(sessionCode).ReceiveLeaderboard(leaderboardData);
+            }
             return StatusCode(result.StatusCode, result);
         }
 

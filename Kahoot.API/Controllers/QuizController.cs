@@ -61,7 +61,7 @@ namespace Kahoot.API.Controllers
 
         [HttpPut("{id}/questions")]
         [Authorize]
-        public async Task<IActionResult> UpdateQuestionsToQuiz(int id, [FromForm] List<QuestionRequest> questionRequests)
+        public async Task<IActionResult> UpdateQuestionsToQuiz(int id, [FromBody] List<QuestionRequest> questionRequests)
         {
             var result = await _quizService.UpdateQuestionsForQuiz(id, questionRequests);
             return StatusCode(result.StatusCode, result);
