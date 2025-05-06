@@ -19,6 +19,7 @@ using Kahoot.Repository.Interface;
 using Kahoot.Repository.Models;
 using System.Security.Claims;
 using NutriDiet.Service.Enums;
+using CloudinaryDotNet.Core;
 
 namespace Kahoot.Service.Services
 {
@@ -342,7 +343,8 @@ namespace Kahoot.Service.Services
                 x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
                       (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search)
                                                    || x.Email.ToLower().Contains(search)) &&
-                                                   x.RoleId != 1
+                                                   x.RoleId != 1,
+                include: i => i.Include(x => x.Role).Include(x => x.UserPackages).ThenInclude(x => x.Package)
             );
 
             if (users == null || !users.Any())
@@ -350,10 +352,30 @@ namespace Kahoot.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
 
-            var response = users.Adapt<List<UserResponse>>().ToList();
+            // Map thủ công để lấy Role.Name
+            var response = users.Select(u => new UserResponse
+            {
+                UserId = u.UserId,
+                FullName = u.FullName,
+                Email = u.Email,
+                Age = u.Age,
+                Avatar = u.Avatar,
+                Status = u.Status,
+                Role = u.Role?.RoleName ?? string.Empty,
+                UserPackages = u.UserPackages?.Select(up => new UserPackagesResponse
+                {
+                    // map các field cần thiết từ UserPackage, ví dụ:
+                    PackageId = up.PackageId,
+                    PackageName = up.Package?.PackageName ?? string.Empty,
+                    StartDate = up.StartDate,
+                    ExpiryDate = up.ExpiryDate,
+                    Status = up.Status
+                }).ToList() ?? new List<UserPackagesResponse>()
+            }).ToList();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
         public async Task<IBusinessResult> GetUserById(int id)
         {
             var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).FirstOrDefaultAsync();

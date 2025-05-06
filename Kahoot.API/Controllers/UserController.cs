@@ -12,6 +12,7 @@ using Kahoot.Service.Services;
 using Kahoot.Service.Utilities;
 using Sprache;
 using Kahoot.Service.Enums;
+using NutriDiet.Service.Enums;
 
 namespace Kahoot.API.Controllers
 {
@@ -142,6 +143,14 @@ namespace Kahoot.API.Controllers
         public async Task<IActionResult> gethistorysession()
         {
             var result = await _userService.GetUserSessionScoresAsync();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("role/{userId}/{role}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeRole(int userId, RoleEnum role)
+        {
+            var result = await _userService.ChangeRole(userId, role);
             return StatusCode(result.StatusCode, result);
         }
     }

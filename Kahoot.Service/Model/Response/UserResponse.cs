@@ -24,6 +24,8 @@ namespace Kahoot.Service.ModelDTOs.Response
         public string? Avatar { get; set; }
 
         public string? Status { get; set; }
+        public string Role { get; set; }
+
         public List<UserPackagesResponse> UserPackages { get; set; }
     }
     public class UserPackagesResponse

@@ -97,7 +97,7 @@ namespace Kahoot.API.Controllers
 
             if (result.StatusCode >= 200 && result.StatusCode < 300)
             {
-                var leaderboardData = (TeamLeaderboardItem)result.Data!;
+                var leaderboardData = (List<TeamLeaderboardItem>)result.Data!;
                 await _hubContext.Clients.Group(sessionCode).ReceiveLeaderboard(leaderboardData);
             }
             return StatusCode(result.StatusCode, result);

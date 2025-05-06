@@ -2,6 +2,7 @@
 using Kahoot.Service.ModelDTOs.Request;
 using Kahoot.Common.BusinessResult;
 using Kahoot.Repository.Models;
+using NutriDiet.Service.Enums;
 
 namespace Kahoot.Service.Interface
 {
@@ -31,5 +32,6 @@ namespace Kahoot.Service.Interface
         Task<IBusinessResult> UpdateUser(UpdateUserRequest request);
         Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status);
         Task<IBusinessResult> GetUserSessionScoresAsync();
+        Task<IBusinessResult> ChangeRole(int userId, RoleEnum role);
     }
 }
