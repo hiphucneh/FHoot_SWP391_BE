@@ -24,8 +24,7 @@ namespace Kahoot.API.Extensions
         public static void RegisterServices(IServiceCollection services, IConfiguration configuration)
         {
 
-            //var connectionString = configuration.GetConnectionString("DefaultConnection");
-            var connectionString = "Server=tcp:fptkahoot.database.windows.net,1433;Initial Catalog=Kahoot;Persist Security Info=False;User ID=fptkahoot;Password=Peleven1-2-3;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<KahootContext>(opt =>
                 opt.UseSqlServer(connectionString)
                    .EnableSensitiveDataLogging()
